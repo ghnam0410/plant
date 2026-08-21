@@ -3,590 +3,501 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>식물과 에너지 행맨</title>
+    <title>식물과 에너지 행맨 게임</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Jua & Gowun Dodum -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Gowun+Dodum&family=Jua&display=swap" rel="stylesheet">
-    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Tone.js for Sound Effects -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
     
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    fontFamily: {
-                        'jua': ['Jua', 'sans-serif'],
-                        'gowun': ['Gowun Dodum', 'sans-serif'],
-                    },
-                    colors: {
-                        'nature-green': '#4ade80',
-                        'nature-dark-green': '#15803d',
-                        'nature-brown': '#78350f',
-                        'nature-light-brown': '#d97706',
-                        'nature-bg': '#f0fdf4',
-                    }
-                }
-            }
-        }
-    </script>
     <style>
         body {
-            background-color: #f0fdf4; /* nature-bg */
             font-family: 'Gowun Dodum', sans-serif;
-            margin: 0;
-            padding: 0;
-            display: flex;
-            flex-direction: column;
-            min-height: 100vh;
+            background-color: #f0fdf4;
         }
-
-        h1, h2, h3, .title-font {
+        .font-jua {
             font-family: 'Jua', sans-serif;
         }
-
-        #plant-container {
-            position: relative;
-            width: 200px;
-            height: 250px;
-            margin: 0 auto;
-            border-bottom: 4px solid #78350f; /* Ground */
-            overflow: hidden;
+        .key-btn {
+            transition: all 0.15s ease-in-out;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
         }
-
-        .stem {
-            position: absolute;
-            bottom: 0;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 12px;
-            height: 180px;
-            background-color: #15803d;
-            border-radius: 6px;
-            transition: all 0.5s ease;
+        .key-btn:active:not(:disabled) {
+            transform: scale(0.92);
         }
-
-        .leaf-element {
-            position: absolute;
-            background-color: #4ade80;
-            border-radius: 50% 0 50% 0;
-            transition: all 0.5s ease;
+        .leaf-icon {
+            transition: all 0.3s ease;
         }
-
-        /* Default Healthy Leaves */
-        .leaf-1 { width: 40px; height: 40px; bottom: 120px; left: 40px; transform: rotate(-30deg); }
-        .leaf-2 { width: 50px; height: 50px; bottom: 80px; left: 110px; transform: rotate(45deg); border-radius: 0 50% 0 50%; }
-        .leaf-3 { width: 30px; height: 30px; bottom: 150px; left: 120px; transform: rotate(60deg); border-radius: 0 50% 0 50%; }
-        .leaf-4 { width: 45px; height: 45px; bottom: 60px; left: 30px; transform: rotate(-45deg); }
-        
-        .flower-core {
-            position: absolute;
-            width: 30px;
-            height: 30px;
-            background-color: #fbbf24;
-            border-radius: 50%;
-            bottom: 170px;
-            left: 50%;
-            transform: translateX(-50%);
-            transition: all 0.5s ease;
-        }
-
-        .petal {
-            position: absolute;
-            width: 20px;
-            height: 20px;
-            background-color: #f472b6;
-            border-radius: 50%;
-            transition: all 0.5s ease;
-        }
-        
-        /* Petal positions relative to flower core */
-        .petal-1 { top: -15px; left: 5px; }
-        .petal-2 { top: 5px; left: 20px; }
-        .petal-3 { top: 20px; left: 5px; }
-        .petal-4 { top: 5px; left: -10px; }
-
-        /* Withered States based on wrong guesses (0 to 8) */
-        .state-1 .stem { background-color: #22c55e; }
-        .state-1 .leaf-1 { transform: rotate(-40deg) translateY(5px); background-color: #86efac; }
-        
-        .state-2 .stem { background-color: #4ade80; }
-        .state-2 .leaf-1 { opacity: 0; }
-        .state-2 .leaf-2 { transform: rotate(55deg) translateY(5px); background-color: #86efac; }
-
-        .state-3 .stem { background-color: #84cc16; }
-        .state-3 .leaf-2 { opacity: 0; }
-        .state-3 .leaf-3 { transform: rotate(70deg) translateY(5px); background-color: #bef264; }
-
-        .state-4 .stem { background-color: #a3e635; }
-        .state-4 .leaf-3 { opacity: 0; }
-        .state-4 .leaf-4 { transform: rotate(-55deg) translateY(5px); background-color: #bef264; }
-
-        .state-5 .stem { background-color: #ca8a04; }
-        .state-5 .leaf-4 { opacity: 0; }
-        .state-5 .petal-1 { opacity: 0; transform: translateY(20px); }
-
-        .state-6 .stem { background-color: #a16207; height: 160px; }
-        .state-6 .petal-2 { opacity: 0; transform: translateY(20px); }
-        .state-6 .flower-core { bottom: 150px; background-color: #d97706; }
-
-        .state-7 .stem { background-color: #713f12; height: 140px; transform: translateX(-50%) rotate(10deg); }
-        .state-7 .petal-3 { opacity: 0; transform: translateY(20px); }
-        .state-7 .flower-core { bottom: 130px; left: 55%; background-color: #92400e; }
-
-        .state-8 .stem { background-color: #451a03; height: 100px; transform: translateX(-50%) rotate(30deg); }
-        .state-8 .petal-4 { opacity: 0; transform: translateY(20px); }
-        .state-8 .flower-core { bottom: 85px; left: 65%; background-color: #451a03; opacity: 0.5; }
-
-
-        .letter-box {
-            display: inline-flex;
-            justify-content: center;
-            align-items: center;
-            width: 40px;
-            height: 50px;
-            margin: 0 4px;
-            font-size: 1.5rem;
-            font-weight: bold;
-            color: #15803d;
-            border-bottom: 3px solid #15803d;
-            text-transform: uppercase;
-        }
-
-        .keyboard-btn {
-            width: 40px;
-            height: 40px;
-            margin: 4px;
-            font-size: 1.25rem;
-            font-weight: bold;
-            color: white;
-            background-color: #4ade80;
-            border-radius: 8px;
-            border: none;
-            cursor: pointer;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-            transition: all 0.2s;
-            font-family: 'Jua', sans-serif;
-        }
-
-        .keyboard-btn:hover:not(:disabled) {
-            background-color: #15803d;
-            transform: translateY(-2px);
-        }
-
-        .keyboard-btn:disabled {
-            background-color: #d1d5db;
-            color: #9ca3af;
-            cursor: not-allowed;
-            box-shadow: none;
-            transform: translateY(0);
-        }
-
-        .keyboard-btn.correct {
-            background-color: #3b82f6; /* Blue for correct guess */
-        }
-
-        .keyboard-btn.wrong {
-            background-color: #ef4444; /* Red for wrong guess */
-        }
-
-        /* Life indicator */
-        .life-leaf {
-            display: inline-block;
-            width: 24px;
-            height: 24px;
-            margin: 0 4px;
-            background-color: #4ade80;
-            border-radius: 50% 0 50% 0;
-            transform: rotate(-45deg);
-            transition: opacity 0.3s;
-        }
-        
-        .life-leaf.lost {
-            opacity: 0.2;
-            background-color: #9ca3af;
-        }
-
-        #message-modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.5);
-            justify-content: center;
-            align-items: center;
-            z-index: 50;
-        }
-
-        #message-content {
-            background-color: white;
-            padding: 2rem;
-            border-radius: 1rem;
-            text-align: center;
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-            border: 4px solid #4ade80;
-            max-width: 90%;
+        .leaf-lost {
+            filter: grayscale(100%);
+            opacity: 0.25;
+            transform: scale(0.85);
         }
     </style>
 </head>
-<body class="text-gray-800">
+<body class="min-h-screen flex flex-col justify-between items-center text-slate-800 p-4 select-none bg-gradient-to-b from-emerald-100 via-green-50 to-emerald-100">
 
-    <div class="flex-grow flex flex-col items-center py-6 px-4 max-w-4xl mx-auto w-full">
+    <div class="w-full max-w-xl mx-auto flex flex-col items-center flex-grow">
         
-        <!-- Header Section -->
-        <header class="text-center mb-6 w-full">
-            <h1 class="text-4xl text-nature-dark-green mb-2">식물과 에너지 행맨</h1>
-            <h2 class="text-xl text-nature-brown mb-4">단어를 맞추고 나무를 살려주세요!</h2>
-            
-            <!-- Stage and Lives -->
-            <div class="flex justify-between items-center bg-white p-4 rounded-xl shadow-sm border border-green-200">
-                <div class="title-font text-2xl text-nature-dark-green">
-                    단계: <span id="stage-display">1</span> / 10
-                </div>
-                <div id="lives-container" class="flex items-center">
-                    <!-- Leaves injected by JS -->
-                </div>
-            </div>
+        <!-- Header -->
+        <header class="w-full text-center my-3">
+            <h1 class="font-jua text-3xl sm:text-4xl text-emerald-800 tracking-wide drop-shadow-sm">
+                🌿 식물과 에너지 행맨
+            </h1>
+            <p class="text-xs sm:text-sm text-emerald-600 mt-1">
+                알맞은 알파벳을 맞춰 식물을 파릇파릇하게 가꿔보세요!
+            </p>
         </header>
 
-        <!-- Game Area -->
-        <main class="w-full flex flex-col items-center flex-grow">
+        <!-- Status Bar: Stage & Leaves (Lives) -->
+        <div class="w-full bg-white/80 backdrop-blur rounded-2xl p-4 shadow-sm border border-emerald-200 mb-4 flex flex-col sm:flex-row justify-between items-center gap-3">
+            <div class="flex items-center gap-2">
+                <span class="font-jua text-lg text-emerald-700">STAGE</span>
+                <span id="stage-display" class="font-jua text-xl bg-emerald-100 text-emerald-800 px-3 py-0.5 rounded-full border border-emerald-300">
+                    1 / 10
+                </span>
+            </div>
             
-            <!-- Plant Animation Area -->
-            <div class="bg-white p-6 rounded-2xl shadow-md border-2 border-green-100 mb-8 w-full max-w-md flex justify-center">
-                <div id="plant-container" class="state-0">
-                    <div class="stem"></div>
-                    <div class="leaf-element leaf-1"></div>
-                    <div class="leaf-element leaf-2"></div>
-                    <div class="leaf-element leaf-3"></div>
-                    <div class="leaf-element leaf-4"></div>
-                    <div class="flower-core">
-                        <div class="petal petal-1"></div>
-                        <div class="petal petal-2"></div>
-                        <div class="petal petal-3"></div>
-                        <div class="petal petal-4"></div>
-                    </div>
+            <div class="flex flex-col items-end">
+                <div class="text-xs text-emerald-600 mb-1 font-bold">남은 기회 (나뭇잎)</div>
+                <div id="leaves-container" class="flex items-center gap-1">
+                    <!-- Leaves dynamically inserted here -->
                 </div>
             </div>
+        </div>
 
-            <!-- Word Display -->
-            <div id="word-container" class="mb-10 min-h-[60px] flex flex-wrap justify-center gap-2">
-                <!-- Letters injected by JS -->
+        <!-- Plant Display Canvas/SVG Container -->
+        <div class="w-full bg-white rounded-2xl p-4 shadow-md border border-emerald-200 mb-4 flex flex-col items-center justify-center relative min-h-[200px]">
+            <div id="plant-illustration" class="w-48 h-48 flex items-center justify-center">
+                <!-- SVG Plant rendered by JS -->
             </div>
+        </div>
 
-            <!-- Keyboard -->
-            <div id="keyboard" class="flex flex-wrap justify-center max-w-3xl mb-8">
-                <!-- Buttons injected by JS -->
+        <!-- Hint Box -->
+        <div class="w-full bg-emerald-50 rounded-xl p-3 border border-emerald-200 mb-4 text-center">
+            <span class="font-jua text-emerald-800 text-sm bg-emerald-200/80 px-2.5 py-0.5 rounded-md mr-1">힌트</span>
+            <span id="hint-text" class="text-sm sm:text-base text-slate-700 font-medium">
+                뿌리에서 흡수되어 광합성에 사용되는 액체
+            </span>
+        </div>
+
+        <!-- Word Display Area -->
+        <div id="word-display" class="w-full flex flex-wrap justify-center items-center gap-2 my-4 min-h-[50px]">
+            <!-- Letters / Underscores dynamically inserted -->
+        </div>
+
+        <!-- Virtual Keyboard -->
+        <div id="keyboard" class="w-full bg-white/60 p-3 rounded-2xl shadow-sm border border-emerald-200 my-auto">
+            <!-- Row 1 -->
+            <div class="flex justify-center gap-1 sm:gap-1.5 mb-1.5">
+                <button class="key-btn bg-white hover:bg-emerald-50 text-slate-700 font-bold py-2.5 px-2 sm:px-3 rounded-lg border border-slate-200 shadow-sm text-sm sm:text-base" data-key="Q">Q</button>
+                <button class="key-btn bg-white hover:bg-emerald-50 text-slate-700 font-bold py-2.5 px-2 sm:px-3 rounded-lg border border-slate-200 shadow-sm text-sm sm:text-base" data-key="W">W</button>
+                <button class="key-btn bg-white hover:bg-emerald-50 text-slate-700 font-bold py-2.5 px-2 sm:px-3 rounded-lg border border-slate-200 shadow-sm text-sm sm:text-base" data-key="E">E</button>
+                <button class="key-btn bg-white hover:bg-emerald-50 text-slate-700 font-bold py-2.5 px-2 sm:px-3 rounded-lg border border-slate-200 shadow-sm text-sm sm:text-base" data-key="R">R</button>
+                <button class="key-btn bg-white hover:bg-emerald-50 text-slate-700 font-bold py-2.5 px-2 sm:px-3 rounded-lg border border-slate-200 shadow-sm text-sm sm:text-base" data-key="T">T</button>
+                <button class="key-btn bg-white hover:bg-emerald-50 text-slate-700 font-bold py-2.5 px-2 sm:px-3 rounded-lg border border-slate-200 shadow-sm text-sm sm:text-base" data-key="Y">Y</button>
+                <button class="key-btn bg-white hover:bg-emerald-50 text-slate-700 font-bold py-2.5 px-2 sm:px-3 rounded-lg border border-slate-200 shadow-sm text-sm sm:text-base" data-key="U">U</button>
+                <button class="key-btn bg-white hover:bg-emerald-50 text-slate-700 font-bold py-2.5 px-2 sm:px-3 rounded-lg border border-slate-200 shadow-sm text-sm sm:text-base" data-key="I">I</button>
+                <button class="key-btn bg-white hover:bg-emerald-50 text-slate-700 font-bold py-2.5 px-2 sm:px-3 rounded-lg border border-slate-200 shadow-sm text-sm sm:text-base" data-key="O">O</button>
+                <button class="key-btn bg-white hover:bg-emerald-50 text-slate-700 font-bold py-2.5 px-2 sm:px-3 rounded-lg border border-slate-200 shadow-sm text-sm sm:text-base" data-key="P">P</button>
             </div>
-            
-            <!-- Next Button (Hidden initially) -->
-            <button id="next-btn" class="hidden bg-nature-dark-green text-white title-font text-2xl py-3 px-8 rounded-full shadow-lg hover:bg-green-800 transition transform hover:scale-105 mb-4">
-                다음 단계로!
-            </button>
-            <button id="restart-btn" class="hidden bg-nature-brown text-white title-font text-2xl py-3 px-8 rounded-full shadow-lg hover:bg-yellow-900 transition transform hover:scale-105 mb-4">
-                다시 시작하기
-            </button>
+            <!-- Row 2 -->
+            <div class="flex justify-center gap-1 sm:gap-1.5 mb-1.5">
+                <button class="key-btn bg-white hover:bg-emerald-50 text-slate-700 font-bold py-2.5 px-2 sm:px-3 rounded-lg border border-slate-200 shadow-sm text-sm sm:text-base" data-key="A">A</button>
+                <button class="key-btn bg-white hover:bg-emerald-50 text-slate-700 font-bold py-2.5 px-2 sm:px-3 rounded-lg border border-slate-200 shadow-sm text-sm sm:text-base" data-key="S">S</button>
+                <button class="key-btn bg-white hover:bg-emerald-50 text-slate-700 font-bold py-2.5 px-2 sm:px-3 rounded-lg border border-slate-200 shadow-sm text-sm sm:text-base" data-key="D">D</button>
+                <button class="key-btn bg-white hover:bg-emerald-50 text-slate-700 font-bold py-2.5 px-2 sm:px-3 rounded-lg border border-slate-200 shadow-sm text-sm sm:text-base" data-key="F">F</button>
+                <button class="key-btn bg-white hover:bg-emerald-50 text-slate-700 font-bold py-2.5 px-2 sm:px-3 rounded-lg border border-slate-200 shadow-sm text-sm sm:text-base" data-key="G">G</button>
+                <button class="key-btn bg-white hover:bg-emerald-50 text-slate-700 font-bold py-2.5 px-2 sm:px-3 rounded-lg border border-slate-200 shadow-sm text-sm sm:text-base" data-key="H">H</button>
+                <button class="key-btn bg-white hover:bg-emerald-50 text-slate-700 font-bold py-2.5 px-2 sm:px-3 rounded-lg border border-slate-200 shadow-sm text-sm sm:text-base" data-key="J">J</button>
+                <button class="key-btn bg-white hover:bg-emerald-50 text-slate-700 font-bold py-2.5 px-2 sm:px-3 rounded-lg border border-slate-200 shadow-sm text-sm sm:text-base" data-key="K">K</button>
+                <button class="key-btn bg-white hover:bg-emerald-50 text-slate-700 font-bold py-2.5 px-2 sm:px-3 rounded-lg border border-slate-200 shadow-sm text-sm sm:text-base" data-key="L">L</button>
+            </div>
+            <!-- Row 3 -->
+            <div class="flex justify-center gap-1 sm:gap-1.5">
+                <button class="key-btn bg-white hover:bg-emerald-50 text-slate-700 font-bold py-2.5 px-2.5 sm:px-3.5 rounded-lg border border-slate-200 shadow-sm text-sm sm:text-base" data-key="Z">Z</button>
+                <button class="key-btn bg-white hover:bg-emerald-50 text-slate-700 font-bold py-2.5 px-2.5 sm:px-3.5 rounded-lg border border-slate-200 shadow-sm text-sm sm:text-base" data-key="X">X</button>
+                <button class="key-btn bg-white hover:bg-emerald-50 text-slate-700 font-bold py-2.5 px-2.5 sm:px-3.5 rounded-lg border border-slate-200 shadow-sm text-sm sm:text-base" data-key="C">C</button>
+                <button class="key-btn bg-white hover:bg-emerald-50 text-slate-700 font-bold py-2.5 px-2.5 sm:px-3.5 rounded-lg border border-slate-200 shadow-sm text-sm sm:text-base" data-key="V">V</button>
+                <button class="key-btn bg-white hover:bg-emerald-50 text-slate-700 font-bold py-2.5 px-2.5 sm:px-3.5 rounded-lg border border-slate-200 shadow-sm text-sm sm:text-base" data-key="B">B</button>
+                <button class="key-btn bg-white hover:bg-emerald-50 text-slate-700 font-bold py-2.5 px-2.5 sm:px-3.5 rounded-lg border border-slate-200 shadow-sm text-sm sm:text-base" data-key="N">N</button>
+                <button class="key-btn bg-white hover:bg-emerald-50 text-slate-700 font-bold py-2.5 px-2.5 sm:px-3.5 rounded-lg border border-slate-200 shadow-sm text-sm sm:text-base" data-key="M">M</button>
+            </div>
+        </div>
 
-        </main>
     </div>
 
     <!-- Footer -->
-    <footer class="w-full text-center py-4 bg-nature-dark-green text-white mt-auto">
-        <p class="font-bold">제작자: 해누리중학교 과학교사 남국현</p>
+    <footer class="mt-4 text-center text-xs text-emerald-700 py-2">
+        제작자: 해누리중학교 과학교사 남국현
     </footer>
 
-    <!-- Modals -->
-    <div id="message-modal" class="flex">
-        <div id="message-content">
-            <h2 id="modal-title" class="text-3xl mb-4 title-font"></h2>
-            <p id="modal-desc" class="text-lg mb-6"></p>
-            <p id="modal-answer" class="text-xl font-bold text-nature-dark-green mb-6 hidden"></p>
-            <button id="modal-btn" class="bg-nature-light-brown text-white title-font py-2 px-6 rounded-lg text-xl hover:bg-yellow-700 transition">확인</button>
+    <!-- Result / Transition Modal -->
+    <div id="modal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50">
+        <div class="bg-white rounded-2xl p-6 max-w-sm w-full text-center shadow-xl border border-emerald-100 transform transition-all">
+            <div id="modal-icon" class="text-5xl mb-3">🎉</div>
+            <h2 id="modal-title" class="font-jua text-2xl text-emerald-800 mb-2">정답입니다!</h2>
+            <p id="modal-message" class="text-sm text-slate-600 mb-6">
+                식물이 에너지를 가득 머금었습니다!
+            </p>
+            <button id="modal-btn" class="w-full bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white font-jua text-lg py-3 rounded-xl shadow-md transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-400">
+                다음 단계로! (Enter)
+            </button>
         </div>
     </div>
 
     <script>
-        // Game Constants & State
+        // Game Constants & Word List (10 Stages)
         const MAX_MISTAKES = 8;
         
-        // 새로 지정해주신 10개의 키워드 목록
         const WORDS = [
             { word: "WATER", hint: "뿌리에서 흡수되어 광합성에 사용되는 액체" },
             { word: "ENERGY", hint: "식물이 광합성을 통해 저장하고 생명활동에 사용하는 것" },
             { word: "OXYGEN", hint: "광합성 결과 발생하며, 호흡에 필요한 기체" },
-            { word: "STARCH", hint: "광합성으로 만들어진 양분이 잎에 임시로 저장되는 형태" },
             { word: "GLUCOSE", hint: "광합성으로 최초로 만들어지는 양분" },
             { word: "SUGARCANE", hint: "광합성 양분을 설탕 형태로 저장하는 대표적인 식물" },
-            { word: "RESPIRATION", hint: "포도당을 분해하여 생명 활동에 필요한 에너지를 얻는 과정" },
-            { word: "CHLOROPLAST", hint: "식물 세포에서 광합성이 일어나는 장소" },
             { word: "CARBONDIOXIDE", hint: "광합성에 필요하며, 호흡 결과 방출되는 기체" },
-            { word: "PHOTOSYNTHESIS", hint: "식물이 빛에너지를 이용하여 양분을 만드는 과정" }
+            { word: "PHOTOSYNTHESIS", hint: "빛에너지를 이용하여 양분을 만드는 과정" },
+            { word: "STARCH", hint: "광합성으로 만들어진 양분이 잎에 임시로 저장되는 형태" },
+            { word: "RESPIRATION", hint: "포도당을 분해하여 생명 활동에 필요한 에너지를 얻는 과정" },
+            { word: "CHLOROPLAST", hint: "식물 세포에서 광합성이 일어나는 장소" }
         ];
 
+        // State Variables
         let currentStage = 0;
         let currentWord = "";
+        let currentHint = "";
         let guessedLetters = new Set();
         let mistakes = 0;
         let isGameOver = false;
 
-        // Sound Synthesis (Tone.js)
-        let synth;
-        
+        // Tone.js Sound Synthesizer Initialization
+        let synth = null;
+
         function initAudio() {
-            if (!synth) {
-                synth = new Tone.PolySynth(Tone.Synth).toDestination();
-                Tone.start();
+            if (!synth && window.Tone) {
+                try {
+                    Tone.start();
+                    synth = new Tone.PolySynth(Tone.Synth).toDestination();
+                    synth.volume.value = -8;
+                } catch (e) {
+                    console.log("Audio Context Error:", e);
+                }
             }
         }
 
-        function playSound(type) {
-            initAudio();
-            if (type === 'correct') {
-                synth.triggerAttackRelease("C5", "8n");
-            } else if (type === 'wrong') {
-                synth.triggerAttackRelease("E2", "8n");
-            } else if (type === 'win') {
-                const now = Tone.now();
-                synth.triggerAttackRelease("C4", "8n", now);
-                synth.triggerAttackRelease("E4", "8n", now + 0.25);
-                synth.triggerAttackRelease("G4", "8n", now + 0.5);
-                synth.triggerAttackRelease("C5", "4n", now + 0.75);
-            } else if (type === 'lose') {
-                const now = Tone.now();
-                synth.triggerAttackRelease("C3", "4n", now);
-                synth.triggerAttackRelease("G2", "4n", now + 0.5);
-                synth.triggerAttackRelease("C2", "2n", now + 1.0);
-            }
+        function playCorrectSound() {
+            try {
+                initAudio();
+                if (synth) synth.triggerAttackRelease(["E5", "G5"], "8n");
+            } catch(e) {}
         }
 
-        // UI Elements
-        const stageDisplay = document.getElementById('stage-display');
-        const livesContainer = document.getElementById('lives-container');
-        const plantContainer = document.getElementById('plant-container');
-        const wordContainer = document.getElementById('word-container');
-        const keyboardContainer = document.getElementById('keyboard');
-        const nextBtn = document.getElementById('next-btn');
-        const restartBtn = document.getElementById('restart-btn');
-        
-        const modal = document.getElementById('message-modal');
-        const modalTitle = document.getElementById('modal-title');
-        const modalDesc = document.getElementById('modal-desc');
-        const modalAnswer = document.getElementById('modal-answer');
-        const modalBtn = document.getElementById('modal-btn');
-
-        function initializeGame() {
-            currentStage = 0;
-            loadStage();
+        function playWrongSound() {
+            try {
+                initAudio();
+                if (synth) synth.triggerAttackRelease(["C3", "F#2"], "8n");
+            } catch(e) {}
         }
 
-        function loadStage() {
-            isGameOver = false;
-            mistakes = 0;
-            guessedLetters.clear();
-            currentWord = WORDS[currentStage].word;
-            
-            // Update UI
-            stageDisplay.textContent = currentStage + 1;
-            nextBtn.classList.add('hidden');
-            restartBtn.classList.add('hidden');
-            
-            updateLivesDisplay();
-            updatePlantVisuals();
-            renderWord();
-            renderKeyboard();
-            
-            // Show hint briefly
-            showModal(`단어 힌트`, WORDS[currentStage].hint);
-            modalAnswer.classList.add('hidden');
+        function playWinSound() {
+            try {
+                initAudio();
+                if (synth) synth.triggerAttackRelease(["C4", "E4", "G4", "C5"], "4n");
+            } catch(e) {}
         }
 
-        function updateLivesDisplay() {
-            livesContainer.innerHTML = '';
+        function playGameOverSound() {
+            try {
+                initAudio();
+                if (synth) synth.triggerAttackRelease(["G3", "Eb3", "C3"], "4n");
+            } catch(e) {}
+        }
+
+        // DOM Elements
+        const stageDisplay = document.getElementById("stage-display");
+        const leavesContainer = document.getElementById("leaves-container");
+        const plantIllustration = document.getElementById("plant-illustration");
+        const hintText = document.getElementById("hint-text");
+        const wordDisplay = document.getElementById("word-display");
+        const keyboard = document.getElementById("keyboard");
+        const modal = document.getElementById("modal");
+        const modalIcon = document.getElementById("modal-icon");
+        const modalTitle = document.getElementById("modal-title");
+        const modalMessage = document.getElementById("modal-message");
+        const modalBtn = document.getElementById("modal-btn");
+
+        function getPlantSVG(mistakeCount) {
+            // Colors shift from vibrant green -> yellow brown -> withered brown
+            const stemColors = ["#16a34a", "#22c55e", "#65a30d", "#84cc16", "#a16207", "#854d0e", "#713f12", "#543310", "#3f2207"];
+            const leafColors = ["#22c55e", "#4ade80", "#84cc16", "#a3e635", "#ca8a04", "#a16207", "#854d0e", "#713f12", "#523212"];
+            const flowerColors = ["#f43f5e", "#fb7185", "#f43f5e", "#fb923c", "#d97706", "#9a3412", "#78350f", "#522504", "#3b1a03"];
+
+            const stemColor = stemColors[mistakeCount] || stemColors[8];
+            const leafColor = leafColors[mistakeCount] || leafColors[8];
+            const flowerColor = flowerColors[mistakeCount] || flowerColors[8];
+
+            // Curvature/droop increases with mistakes
+            const stemCurve = mistakeCount * 6; 
+            const plantDroop = mistakeCount * 5;
+
+            // Render different stages of wilting
+            return `
+                <svg width="100%" height="100%" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+                    <!-- Ground/Soil -->
+                    <ellipse cx="100" cy="175" rx="70" ry="12" fill="#78350f" opacity="0.8"/>
+                    <ellipse cx="100" cy="173" rx="65" ry="9" fill="#92400e"/>
+
+                    ${mistakeCount < 8 ? `
+                        <!-- Main Stem -->
+                        <path d="M 100 170 Q ${100 + stemCurve} ${120 + plantDroop/2} ${100 + stemCurve * 1.5} ${70 + plantDroop}" 
+                              fill="none" stroke="${stemColor}" stroke-width="8" stroke-linecap="round" />
+
+                        <!-- Left Leaf 1 -->
+                        ${mistakeCount < 7 ? `
+                        <path d="M ${98 + stemCurve*0.5} ${140 + plantDroop*0.5} Q ${60 + stemCurve} ${130 + plantDroop} ${55 + stemCurve} ${145 + plantDroop}" 
+                              fill="${leafColor}" stroke="${stemColor}" stroke-width="2"/>
+                        ` : ''}
+
+                        <!-- Right Leaf 1 -->
+                        ${mistakeCount < 6 ? `
+                        <path d="M ${102 + stemCurve*0.7} ${125 + plantDroop*0.6} Q ${140 + stemCurve} ${110 + plantDroop} ${145 + stemCurve} ${125 + plantDroop}" 
+                              fill="${leafColor}" stroke="${stemColor}" stroke-width="2"/>
+                        ` : ''}
+
+                        <!-- Left Leaf 2 -->
+                        ${mistakeCount < 5 ? `
+                        <path d="M ${99 + stemCurve} ${100 + plantDroop*0.8} Q ${65 + stemCurve} ${80 + plantDroop} ${70 + stemCurve} ${95 + plantDroop}" 
+                              fill="${leafColor}" stroke="${stemColor}" stroke-width="2"/>
+                        ` : ''}
+
+                        <!-- Flower Petals & Center -->
+                        ${mistakeCount < 8 ? `
+                        <g transform="translate(${100 + stemCurve * 1.5}, ${70 + plantDroop})">
+                            <!-- Petals -->
+                            ${mistakeCount < 4 ? `<circle cx="0" cy="-14" r="8" fill="${flowerColor}" />` : ''}
+                            ${mistakeCount < 5 ? `<circle cx="14" cy="0" r="8" fill="${flowerColor}" />` : ''}
+                            ${mistakeCount < 3 ? `<circle cx="0" cy="14" r="8" fill="${flowerColor}" />` : ''}
+                            ${mistakeCount < 6 ? `<circle cx="-14" cy="0" r="8" fill="${flowerColor}" />` : ''}
+                            <!-- Flower Center -->
+                            <circle cx="0" cy="0" r="9" fill="${mistakeCount > 4 ? '#78350f' : '#facc15'}" />
+                        </g>
+                        ` : ''}
+
+                        <!-- Fallen Leaves on Ground -->
+                        ${mistakeCount >= 4 ? `<ellipse cx="75" cy="172" rx="8" ry="3" fill="${leafColor}" transform="rotate(-10 75 172)" />` : ''}
+                        ${mistakeCount >= 6 ? `<ellipse cx="125" cy="174" rx="7" ry="3" fill="${leafColor}" transform="rotate(15 125 174)" />` : ''}
+                        ${mistakeCount >= 7 ? `<ellipse cx="90" cy="175" rx="6" ry="2.5" fill="${flowerColor}" />` : ''}
+                    ` : `
+                        <!-- Game Over: Completely Dried Dead Stem -->
+                        <path d="M 100 170 Q 125 145 135 125 T 145 105" 
+                              fill="none" stroke="#451a03" stroke-width="6" stroke-linecap="round" />
+                        <path d="M 120 140 Q 100 130 95 128" 
+                              fill="none" stroke="#451a03" stroke-width="4" stroke-linecap="round" />
+                        <!-- Dead Fallen Leaves on Soil -->
+                        <ellipse cx="70" cy="173" rx="10" ry="3" fill="#522504" transform="rotate(-15 70 173)" />
+                        <ellipse cx="130" cy="174" rx="9" ry="3" fill="#451a03" transform="rotate(20 130 174)" />
+                        <ellipse cx="105" cy="175" rx="7" ry="2.5" fill="#381302" />
+                    `}
+                </svg>
+            `;
+        }
+
+        function renderLives() {
+            leavesContainer.innerHTML = "";
             for (let i = 0; i < MAX_MISTAKES; i++) {
-                const leaf = document.createElement('div');
-                leaf.className = `life-leaf ${i < MAX_MISTAKES - mistakes ? '' : 'lost'}`;
-                livesContainer.appendChild(leaf);
+                const leafSvg = document.createElement("div");
+                leafSvg.className = `leaf-icon ${i >= (MAX_MISTAKES - mistakes) ? 'leaf-lost' : ''}`;
+                leafSvg.innerHTML = `
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12 2C6.5 2 2 6.5 2 12C2 17.5 6.5 22 12 22C17.5 22 22 17.5 22 12C22 6.5 17.5 2 12 2ZM12 20C7.6 20 4 16.4 4 12C4 7.6 7.6 4 12 4C16.4 4 20 7.6 20 12C20 16.4 16.4 20 12 20Z" fill="none"/>
+                        <path d="M17 8C11 8 7 12 6 18C12 18 16 14 17 8Z" fill="#22c55e"/>
+                        <path d="M12 13L7 18" stroke="#15803d" stroke-width="1.5" stroke-linecap="round"/>
+                    </svg>
+                `;
+                leavesContainer.appendChild(leafSvg);
             }
-        }
-
-        function updatePlantVisuals() {
-            // Remove all state classes
-            for (let i = 0; i <= MAX_MISTAKES; i++) {
-                plantContainer.classList.remove(`state-${i}`);
-            }
-            // Add current state class
-            plantContainer.classList.add(`state-${mistakes}`);
         }
 
         function renderWord() {
-            wordContainer.innerHTML = '';
-            for (let i = 0; i < currentWord.length; i++) {
-                const letter = currentWord[i];
-                const box = document.createElement('div');
-                box.className = 'letter-box';
-                
-                if (guessedLetters.has(letter)) {
-                    box.textContent = letter;
+            wordDisplay.innerHTML = "";
+            let isComplete = true;
+
+            for (const char of currentWord) {
+                const letterBox = document.createElement("div");
+                letterBox.className = "w-10 h-12 sm:w-12 sm:h-14 bg-white border-2 border-emerald-300 rounded-xl flex items-center justify-center font-jua text-xl sm:text-2xl text-emerald-900 shadow-sm";
+
+                if (guessedLetters.has(char)) {
+                    letterBox.textContent = char;
+                    letterBox.classList.add("bg-emerald-50", "border-emerald-500");
                 } else {
-                    box.textContent = ''; // Empty space
+                    letterBox.textContent = "_";
+                    letterBox.classList.add("text-transparent", "border-slate-300");
+                    isComplete = false;
                 }
-                wordContainer.appendChild(box);
+                wordDisplay.appendChild(letterBox);
+            }
+
+            // Check Win condition
+            if (isComplete && currentWord.length > 0 && !isGameOver) {
+                handleStageClear();
             }
         }
 
-        function renderKeyboard() {
-            keyboardContainer.innerHTML = '';
-            const rows = [
-                ['Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P'],
-                ['A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L'],
-                ['Z', 'X', 'C', 'V', 'B', 'N', 'M']
-            ];
+        function renderPlant() {
+            plantIllustration.innerHTML = getPlantSVG(mistakes);
+        }
 
-            rows.forEach(row => {
-                const rowDiv = document.createElement('div');
-                rowDiv.className = 'flex justify-center w-full mb-2';
-                
-                row.forEach(letter => {
-                    const btn = document.createElement('button');
-                    btn.className = 'keyboard-btn';
-                    btn.textContent = letter;
-                    btn.id = `btn-${letter}`;
-                    
-                    if (guessedLetters.has(letter)) {
-                        btn.disabled = true;
-                        if (currentWord.includes(letter)) {
-                            btn.classList.add('correct');
-                        } else {
-                            btn.classList.add('wrong');
-                        }
-                    }
-
-                    btn.addEventListener('click', () => handleGuess(letter));
-                    rowDiv.appendChild(btn);
-                });
-                keyboardContainer.appendChild(rowDiv);
+        function resetKeyboard() {
+            const buttons = keyboard.querySelectorAll("button");
+            buttons.forEach(btn => {
+                btn.disabled = false;
+                btn.className = "key-btn bg-white hover:bg-emerald-50 text-slate-700 font-bold py-2.5 px-2 sm:px-3 rounded-lg border border-slate-200 shadow-sm text-sm sm:text-base";
             });
         }
 
-        function handleGuess(letter) {
+        function loadStage(stageIndex) {
+            currentStage = stageIndex;
+            currentWord = WORDS[currentStage].word;
+            currentHint = WORDS[currentStage].hint;
+            guessedLetters.clear();
+            mistakes = 0;
+            isGameOver = false;
+
+            stageDisplay.textContent = `${currentStage + 1} / ${WORDS.length}`;
+            hintText.textContent = currentHint;
+
+            resetKeyboard();
+            renderLives();
+            renderPlant();
+            renderWord();
+            hideModal();
+        }
+
+        function makeGuess(letter) {
             if (isGameOver || guessedLetters.has(letter)) return;
 
-            initAudio(); // Ensure audio context is started
             guessedLetters.add(letter);
 
-            const btn = document.getElementById(`btn-${letter}`);
-            btn.disabled = true;
+            // Update Keyboard Button UI
+            const btn = keyboard.querySelector(`button[data-key="${letter}"]`);
+            if (btn) {
+                btn.disabled = true;
+                if (currentWord.includes(letter)) {
+                    btn.className = "key-btn bg-emerald-500 text-white font-bold py-2.5 px-2 sm:px-3 rounded-lg border border-emerald-600 shadow-inner opacity-90 cursor-not-allowed";
+                } else {
+                    btn.className = "key-btn bg-slate-200 text-slate-400 font-bold py-2.5 px-2 sm:px-3 rounded-lg border border-slate-300 shadow-inner opacity-60 cursor-not-allowed";
+                }
+            }
 
             if (currentWord.includes(letter)) {
-                // Correct guess
-                btn.classList.add('correct');
+                playCorrectSound();
                 renderWord();
-                
-                // 단어를 모두 맞췄는지 확인 후, 승리 시에는 기본 정답음을 내지 않음
-                const hasWon = currentWord.split('').every(l => guessedLetters.has(l));
-                if (!hasWon) playSound('correct');
-                
-                checkWinCondition();
             } else {
-                // Wrong guess
-                btn.classList.add('wrong');
                 mistakes++;
-                updateLivesDisplay();
-                updatePlantVisuals();
-                
-                // 목숨을 모두 잃었는지 확인 후, 패배 시에는 기본 오답음을 내지 않음
-                if (mistakes < MAX_MISTAKES) playSound('wrong');
-                
-                checkLoseCondition();
+                playWrongSound();
+                renderLives();
+                renderPlant();
+
+                if (mistakes >= MAX_MISTAKES) {
+                    handleGameOver();
+                }
             }
         }
 
-        function checkWinCondition() {
-            const hasWon = currentWord.split('').every(letter => guessedLetters.has(letter));
-            if (hasWon) {
-                isGameOver = true;
-                playSound('win');
-                disableAllButtons();
-                
+        function handleStageClear() {
+            isGameOver = true;
+            playWinSound();
+
+            setTimeout(() => {
                 if (currentStage < WORDS.length - 1) {
-                    showModal("정답입니다!", "나무가 다시 생기를 되찾았어요! 다음 단계로 넘어가볼까요?");
-                    nextBtn.classList.remove('hidden');
+                    showModal("🎉", "정답입니다!", `'${currentWord}' 단어를 맞췄습니다.<br>식물이 더 싱싱해졌어요!`, "다음 단계로! (Enter)");
                 } else {
-                    showModal("축하합니다!", "모든 단계를 클리어했습니다! 식물 마스터가 되셨네요!");
-                    restartBtn.classList.remove('hidden');
+                    showModal("🏆", "축하합니다!", "식물과 에너지 단원의 모든 행맨 단어를 마스터하셨습니다!", "처음부터 다시하기 (Enter)");
                 }
-            }
+            }, 300);
         }
 
-        function checkLoseCondition() {
-            if (mistakes >= MAX_MISTAKES) {
-                isGameOver = true;
-                playSound('lose');
-                disableAllButtons();
-                
-                modalAnswer.textContent = `정답: ${currentWord}`;
-                modalAnswer.classList.remove('hidden');
-                showModal("게임 오버", "아쉽게도 나무가 시들어버렸어요...");
-                restartBtn.classList.remove('hidden');
-            }
+        function handleGameOver() {
+            isGameOver = true;
+            playGameOverSound();
+
+            setTimeout(() => {
+                showModal("🥀", "게임 오버!", `식물이 시들어 고사했습니다.<br>정답은 <strong class="text-emerald-700">${currentWord}</strong> 이었습니다.`, "다시 시도하기 (Enter)");
+            }, 300);
         }
 
-        function disableAllButtons() {
-            const buttons = document.querySelectorAll('.keyboard-btn');
-            buttons.forEach(btn => btn.disabled = true);
-        }
-
-        function showModal(title, desc) {
+        // Modal Controls
+        function showModal(icon, title, message, btnText) {
+            modalIcon.textContent = icon;
             modalTitle.textContent = title;
-            modalDesc.textContent = desc;
-            modal.style.display = 'flex';
+            modalMessage.innerHTML = message;
+            modalBtn.textContent = btnText;
+            modal.classList.remove("hidden");
+            modalBtn.focus();
         }
 
-        modalBtn.addEventListener('click', () => {
-            modal.style.display = 'none';
+        function hideModal() {
+            modal.classList.add("hidden");
+        }
+
+        function handleModalClick() {
+            if (mistakes >= MAX_MISTAKES) {
+                // Restart current stage on Game Over
+                loadStage(currentStage);
+            } else if (currentStage < WORDS.length - 1) {
+                // Move to next stage
+                loadStage(currentStage + 1);
+            } else {
+                // Restart from stage 1 after final completion
+                loadStage(0);
+            }
+        }
+
+        // Virtual Keyboard Listener
+        keyboard.addEventListener("click", (e) => {
+            const target = e.target.closest("button");
+            if (target && !target.disabled) {
+                const key = target.getAttribute("data-key");
+                if (key) makeGuess(key);
+            }
         });
 
-        nextBtn.addEventListener('click', () => {
-            currentStage++;
-            loadStage();
-        });
-
-        restartBtn.addEventListener('click', () => {
-            initializeGame();
-        });
-
-        // Add keyboard support
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter') {
-                if (modal.style.display === 'flex') {
-                    modalBtn.click();
-                    return;
+        // Physical Keyboard Listener (A-Z and Enter)
+        window.addEventListener("keydown", (e) => {
+            // Handle Modal Enter key
+            if (!modal.classList.contains("hidden")) {
+                if (e.key === "Enter") {
+                    e.preventDefault();
+                    handleModalClick();
                 }
-                if (!nextBtn.classList.contains('hidden')) {
-                    nextBtn.click();
-                    return;
-                }
-                if (!restartBtn.classList.contains('hidden')) {
-                    restartBtn.click();
-                    return;
-                }
+                return;
             }
 
-            if (isGameOver || modal.style.display === 'flex') return;
-            
+            // Enter key shortcut to trigger button if focused or active
+            if (e.key === "Enter" && isGameOver) {
+                handleModalClick();
+                return;
+            }
+
+            // Key A-Z guessing
             const key = e.key.toUpperCase();
             if (/^[A-Z]$/.test(key)) {
-                handleGuess(key);
+                makeGuess(key);
             }
         });
 
-        // Hide modal on initial load to prevent blocking
-        modal.style.display = 'none';
+        // Modal Button Click Listener
+        modalBtn.addEventListener("click", handleModalClick);
 
-        // Start game
-        window.onload = initializeGame;
-
+        // Start Game on Page Load
+        window.onload = () => {
+            loadStage(0);
+        };
     </script>
 </body>
 </html>
