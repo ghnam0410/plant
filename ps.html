@@ -1,0 +1,886 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>5. 1. 1. 양분을 만드는 광합성 🌿</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Fonts: 주아체 (Title), 고운돋움 (Body) -->
+    <link href="https://fonts.googleapis.com/css2?family=Gowun+Dodum&family=Jua&display=swap" rel="stylesheet">
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Tone.js for Audio -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
+    
+    <style>
+        :root {
+            --bg-pastel-green: #f0fdf4; /* Tailwind green-50 */
+            --bg-leaf-green: #dcfce7; /* Tailwind green-100 */
+            --panel-bg: rgba(255, 255, 255, 0.85);
+            --text-main: #064e3b; /* Tailwind green-900 */
+            --accent-green: #10b981; /* Tailwind emerald-500 */
+            --accent-yellow: #f59e0b;
+        }
+
+        body {
+            font-family: 'Gowun Dodum', sans-serif;
+            background-color: var(--bg-pastel-green);
+            background-image: 
+                radial-gradient(circle at 10% 20%, rgba(16, 185, 129, 0.05), transparent 40%),
+                radial-gradient(circle at 90% 80%, rgba(245, 158, 11, 0.05), transparent 40%);
+            background-attachment: fixed;
+            margin: 0; overflow-x: hidden; touch-action: manipulation;
+            color: var(--text-main); line-height: 1.7;
+        }
+
+        .font-cute { font-family: 'Jua', sans-serif; letter-spacing: 0.5px; }
+        
+        .glass-panel {
+            background: var(--panel-bg);
+            backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+            border-radius: 24px; border: 2px solid rgba(16, 185, 129, 0.2);
+            box-shadow: 0 10px 30px -10px rgba(4, 120, 87, 0.15);
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+        .animate-float { animation: float 4s ease-in-out infinite; }
+
+        .concept-blank {
+            display: inline-block; background: rgba(16, 185, 129, 0.1);
+            color: transparent; border-bottom: 3px dashed var(--accent-green);
+            padding: 0 12px; margin: 0 4px; border-radius: 8px;
+            cursor: pointer; transition: all 0.3s; position: relative; font-weight: 700;
+        }
+        .concept-blank::after {
+            content: '클릭!'; position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
+            color: var(--accent-green); font-size: 0.85rem; font-family: 'Jua';
+            opacity: 0.8; animation: pulse-glow 1.5s infinite alternate;
+        }
+        @keyframes pulse-glow { 0% { opacity: 0.5; } 100% { opacity: 1; transform: translate(-50%, -50%) scale(1.1); } }
+        
+        .concept-blank.revealed {
+            background: rgba(16, 185, 129, 0.2); color: #047857;
+            border-bottom: 3px solid var(--accent-green); transform: scale(1.05);
+        }
+        .concept-blank.revealed::after { display: none; }
+
+        /* Navigation Buttons */
+        .nav-btn { position: relative; overflow: hidden; transition: all 0.3s; border: 2px solid transparent; }
+        .nav-btn.active {
+            background: linear-gradient(135deg, #10b981, #059669);
+            border-color: rgba(255,255,255,0.5); box-shadow: 0 5px 15px rgba(16, 185, 129, 0.4);
+            color: white; transform: translateY(-2px);
+        }
+
+        .test-tube {
+            width: 60px; height: 180px;
+            border: 3px solid #cbd5e1;
+            border-top: none;
+            border-radius: 0 0 30px 30px;
+            position: relative; overflow: hidden;
+            background: rgba(255,255,255,0.5);
+            box-shadow: inset -5px -5px 10px rgba(0,0,0,0.1);
+        }
+        .liquid {
+            position: absolute; bottom: 0; left: 0; width: 100%; height: 70%;
+            transition: background-color 1.5s ease-in-out;
+            border-radius: 0 0 27px 27px;
+        }
+        .liquid.blue { background-color: #3b82f6; opacity: 0.8; }
+        .liquid.yellow { background-color: #eab308; opacity: 0.8; }
+        .liquid.green { background-color: #22c55e; opacity: 0.8; }
+        
+        .plant {
+            position: absolute; bottom: 10px; left: 50%; transform: translateX(-50%);
+            width: 30px; height: 80px; opacity: 0; transition: opacity 0.5s;
+        }
+        .foil {
+            position: absolute; inset: -5px; background: #94a3b8;
+            background-image: linear-gradient(45deg, #94a3b8 25%, #cbd5e1 50%, #94a3b8 75%);
+            z-index: 10; opacity: 0; transition: opacity 0.5s; border-radius: 0 0 30px 30px;
+        }
+        .bubble {
+            position: absolute; background: white; border-radius: 50%;
+            animation: rise 2s infinite ease-in; opacity: 0;
+        }
+        @keyframes rise {
+            0% { bottom: 20%; transform: translateX(0) scale(0.5); opacity: 0.8; }
+            50% { transform: translateX(5px) scale(1); }
+            100% { bottom: 90%; transform: translateX(-5px) scale(0); opacity: 0; }
+        }
+
+        /* Quiz Box */
+        .quiz-option {
+            transition: all 0.2s; border: 2px solid #e2e8f0;
+        }
+        .quiz-option:hover { border-color: #10b981; background-color: #ecfdf5; }
+        .quiz-option.selected { border-color: #10b981; background-color: #d1fae5; font-weight: bold; }
+        .quiz-option.correct { border-color: #3b82f6; background-color: #dbeafe; color: #1e3a8a; }
+        .quiz-option.wrong { border-color: #ef4444; background-color: #fee2e2; color: #991b1b; }
+
+        /* Custom Styles for new features */
+        .helmont-select {
+            appearance: none; background-color: rgba(16, 185, 129, 0.1);
+            border: 2px dashed var(--accent-green); color: var(--text-main);
+            padding: 2px 24px 2px 10px; border-radius: 8px; font-weight: 700;
+            cursor: pointer; transition: all 0.3s;
+            background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%2310b981%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E");
+            background-repeat: no-repeat; background-position: right 8px top 50%; background-size: 10px auto;
+        }
+        .helmont-select:focus { outline: none; box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.3); }
+        .helmont-select.correct { border-style: solid; background-color: rgba(16, 185, 129, 0.2); color: #047857; background-image: none; padding-right: 10px; }
+        .tree-grow-anim { transition: all 2s ease-in-out; }
+
+        .concept-blank.revealed.color-yellow { color: #d97706 !important; border-bottom-color: #f59e0b !important; background: rgba(245, 158, 11, 0.1); }
+        .concept-blank.revealed.color-green { color: #15803d !important; border-bottom-color: #22c55e !important; background: rgba(34, 197, 94, 0.1); }
+        .concept-blank.revealed.color-blue { color: #1d4ed8 !important; border-bottom-color: #3b82f6 !important; background: rgba(59, 130, 246, 0.1); }
+    </style>
+</head>
+<body>
+
+    <div id="overlay" class="fixed inset-0 z-[200] flex flex-col items-center justify-center bg-white/95 px-4 backdrop-blur-sm transition-opacity duration-500">
+        <div class="text-center animate-float max-w-2xl">
+            <div class="mb-6 flex justify-center gap-6 text-6xl">
+                <i class="fa-solid fa-leaf text-green-500 drop-shadow-md"></i>
+                <i class="fa-solid fa-sun text-yellow-400 drop-shadow-md"></i>
+                <i class="fa-solid fa-droplet text-blue-400 drop-shadow-md"></i>
+            </div>
+            <h1 class="text-center font-cute text-4xl sm:text-5xl md:text-6xl text-green-700 mb-4 drop-shadow-sm">5. 1. 1. 양분을 만드는 광합성</h1>
+            <p class="text-xl md:text-2xl text-green-600 mb-8 font-light">식물은 어떻게 스스로 양분을 만들까요? 🌿</p>
+            
+            <div class="space-y-3 mb-8 text-left max-w-md mx-auto bg-green-50 p-6 rounded-2xl border border-green-200 shadow-lg">
+                <h3 class="font-cute text-2xl text-green-800 mb-3 text-center">💡 오늘 배울 내용</h3>
+                <ul class="text-green-800 space-y-2.5 text-base">
+                    <li class="flex items-center gap-2"><i class="fa-solid fa-seedling text-green-500"></i> 1단계: 광합성의 이유와 헬몬트 가설</li>
+                    <li class="flex items-center gap-2"><i class="fa-solid fa-flask text-blue-400"></i> 2단계: BTB 용액 가상 실험</li>
+                    <li class="flex items-center gap-2"><i class="fa-solid fa-book-open text-yellow-500"></i> 3단계: 광합성 개념 및 산물 정리</li>
+                    <li class="flex items-center gap-2"><i class="fa-solid fa-pencil text-red-400"></i> 4단계: 실전 문제 풀이</li>
+                </ul>
+            </div>
+
+            <button onclick="startApp()" class="font-cute bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-400 hover:to-emerald-500 text-white text-2xl sm:text-3xl py-4 px-10 rounded-full shadow-xl transition-transform hover:scale-105 active:scale-95">
+                광합성 탐구 시작하기 🚀
+            </button>
+        </div>
+    </div>
+
+    <div id="app" class="max-w-5xl mx-auto p-4 md:p-8 hidden">
+        
+        <header class="text-center mb-8 pt-4">
+            <h1 class="font-cute text-4xl md:text-5xl text-green-800 drop-shadow-sm">🌿 양분을 만드는 광합성</h1>
+            <p class="text-green-600 mt-2 font-cute text-lg">중학교 2학년 과학 V. 식물과 에너지</p>
+        </header>
+
+        <!-- Navigation Bar -->
+        <nav class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-8 glass-panel p-3">
+            <button onclick="openTab('story')" id="btn-story" class="nav-btn active font-cute text-sm sm:text-lg py-3 px-2 rounded-xl text-green-800 font-bold bg-white">1. 헬몬트 이야기</button>
+            <button onclick="openTab('lab')" id="btn-lab" class="nav-btn font-cute text-sm sm:text-lg py-3 px-2 rounded-xl text-green-800 font-bold bg-white">2. 가상 실험실</button>
+            <button onclick="openTab('concept')" id="btn-concept" class="nav-btn font-cute text-sm sm:text-lg py-3 px-2 rounded-xl text-green-800 font-bold bg-white">3. 개념 정리</button>
+            <button onclick="openTab('quiz')" id="btn-quiz" class="nav-btn font-cute text-sm sm:text-lg py-3 px-2 rounded-xl text-green-800 font-bold bg-white">4. 문제 풀이</button>
+        </nav>
+
+        <!-- ========================================== -->
+        <!-- TAB 1: STORY (헬몬트 가설) -->
+        <!-- ========================================== -->
+        <section id="tab-story" class="tab-content glass-panel p-6 md:p-10 mb-8">
+            <div class="bg-yellow-50 border border-yellow-200 p-4 rounded-xl mb-8 flex items-start gap-3 shadow-sm">
+                <i class="fa-solid fa-circle-info text-yellow-500 text-2xl mt-1"></i>
+                <p class="text-gray-700">본문의 <strong class="text-emerald-600">점선 빈칸</strong>을 클릭해 학습지의 정답을 확인하세요. 스스로 먼저 생각해본 후 클릭하면 학습 효과가 좋습니다!</p>
+            </div>
+
+            <div class="mb-8">
+                <h2 class="font-cute text-3xl text-green-700 mb-4"><i class="fa-solid fa-tree"></i> 1. 식물의 광합성</h2>
+                <div class="bg-white p-5 rounded-xl border-2 border-green-100 shadow-sm text-lg">
+                    <p class="mb-2"><strong>1) 광합성을 하는 이유:</strong></p>
+                    <p class="pl-4">
+                        <span class="concept-blank" onclick="revealBlank(this)">에너지원</span>(으)로 사용되는 
+                        <span class="concept-blank" onclick="revealBlank(this)">양분</span>을 스스로 만들기 위해서.
+                    </p>
+                </div>
+            </div>
+
+            <div>
+                <h2 class="font-cute text-2xl text-green-700 mb-4"><i class="fa-solid fa-magnifying-glass"></i> 2) 헬몬트의 생각 따라가기</h2>
+                
+                <!-- Experiment Entry Button -->
+                <div id="helmont-intro" class="text-center py-10 bg-white rounded-xl border-2 border-green-200 shadow-sm mb-6">
+                    <p class="text-lg text-gray-700 mb-4">헬몬트가 어떤 실험을 했는지 먼저 알아볼까요?</p>
+                    <button onclick="openHelmontModal()" class="font-cute bg-green-500 hover:bg-green-600 text-white text-xl py-3 px-8 rounded-full shadow-lg transition-transform hover:scale-105">
+                        <i class="fa-solid fa-flask"></i> 헬몬트의 실험 해보기
+                    </button>
+                </div>
+
+                <div id="helmont-thoughts" class="grid grid-cols-1 md:grid-cols-2 gap-6 hidden">
+                    <!-- Table Style layout for Helmont -->
+                    <div class="bg-white rounded-xl border-2 border-blue-100 overflow-hidden shadow-sm col-span-1 md:col-span-2">
+                        <div class="grid grid-cols-1 sm:grid-cols-4 border-b border-blue-100">
+                            <div class="bg-blue-50 p-4 font-bold text-blue-800 flex items-center font-cute text-lg">기존의 정설</div>
+                            <div class="p-4 sm:col-span-3">식물은 흙 속에서 양분을 흡수해서 자란다.</div>
+                        </div>
+                        <div class="grid grid-cols-1 sm:grid-cols-4 border-b border-blue-100">
+                            <div class="bg-blue-50 p-4 font-bold text-blue-800 flex items-center font-cute text-lg">헬몬트의 가설</div>
+                            <div class="p-4 sm:col-span-3">식물이 자랄수록 흙을 먹어 치우므로, 흙의 질량은 
+                                <select class="helmont-select" onchange="checkSelect(this, '감소할 것이다')">
+                                    <option value="">선택하세요</option>
+                                    <option value="증가할 것이다">증가할 것이다</option>
+                                    <option value="감소할 것이다">감소할 것이다</option>
+                                    <option value="변화 없을 것이다">변화 없을 것이다</option>
+                                </select>.
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-1 sm:grid-cols-4 border-b border-blue-100">
+                            <div class="bg-blue-50 p-4 font-bold text-blue-800 flex items-center font-cute text-lg">실험 결과 이유</div>
+                            <div class="p-4 sm:col-span-3">5년 후 버드나무의 질량이 늘어난 것은 오직 <span class="concept-blank" onclick="revealBlank(this)">물</span>이 양분으로 변했기 때문에!</div>
+                        </div>
+                        <div class="grid grid-cols-1 sm:grid-cols-4">
+                            <div class="bg-blue-50 p-4 font-bold text-blue-800 flex items-center font-cute text-lg">결론</div>
+                            <div class="p-4 sm:col-span-3">"식물은 흙을 흡수해서 자란다"는 당시의 생각은 
+                                <select class="helmont-select" onchange="checkSelect(this, '틀리다')">
+                                    <option value="">선택하세요</option>
+                                    <option value="맞다">맞다</option>
+                                    <option value="틀리다">틀리다</option>
+                                </select>.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="text-center mt-10">
+                <button onclick="openTab('lab')" class="font-cute bg-emerald-500 hover:bg-emerald-600 text-white text-xl py-3 px-8 rounded-full shadow-lg transition-transform hover:scale-105">
+                    다음: 광합성 물질 알아보기 (실험) <i class="fa-solid fa-arrow-right ml-2"></i>
+                </button>
+            </div>
+        </section>
+
+
+        <!-- ========================================== -->
+        <!-- TAB 2: VIRTUAL LAB (BTB 실험) -->
+        <!-- ========================================== -->
+        <section id="tab-lab" class="tab-content hidden space-y-6">
+            <div class="glass-panel p-6 md:p-8">
+                <h2 class="font-cute text-3xl text-green-700 mb-2">
+                    <i class="fa-solid fa-vial"></i> 3) 광합성에 필요한 물질 알아보기
+                </h2>
+                <p class="text-gray-600 mb-6 bg-white p-3 rounded-lg border border-green-100 inline-block shadow-sm">
+                    순서대로 버튼을 눌러 가상 실험을 진행하고, 아래 표의 빈칸을 완성해보세요.
+                </p>
+
+                <!-- Lab Stage -->
+                <div class="bg-blue-50 rounded-2xl border-2 border-blue-200 p-6 flex flex-col items-center justify-center min-h-[350px] relative shadow-inner mb-8">
+                    
+                    <!-- Title/Status -->
+                    <div id="lab-status" class="font-cute text-xl text-blue-800 mb-8 bg-white px-6 py-2 rounded-full shadow-sm border border-blue-100">
+                        준비: 파란색 BTB 용액이 든 시험관 3개
+                    </div>
+
+                    <!-- Test Tubes Container -->
+                    <div class="flex justify-center gap-8 md:gap-16 items-end h-[200px]">
+                        <!-- (가) -->
+                        <div class="flex flex-col items-center gap-2">
+                            <div class="test-tube">
+                                <div id="liquid-a" class="liquid blue"></div>
+                            </div>
+                            <span class="font-cute font-bold text-gray-700">(가)</span>
+                        </div>
+                        <!-- (나) -->
+                        <div class="flex flex-col items-center gap-2">
+                            <div class="test-tube">
+                                <div id="liquid-b" class="liquid blue"></div>
+                                <svg id="plant-b" class="plant" viewBox="0 0 24 24" fill="#15803d"><path d="M17,8C8,10 5.9,16.17 3.82,21.34L5.71,22L6.66,19.7C7.14,19.87 7.64,20 8,20C19,20 22,3 22,3C21,5 14,5.25 9,6.25C4,7.25 2,11.5 2,13.5C2,15.5 3.75,17.25 3.75,17.25C7,8 17,8 17,8Z"/></svg>
+                                <!-- Bubbles -->
+                                <div class="bubble b1" style="left: 30%; animation-delay: 0s;"></div>
+                                <div class="bubble b2" style="left: 60%; animation-delay: 0.5s;"></div>
+                            </div>
+                            <span class="font-cute font-bold text-gray-700">(나)</span>
+                        </div>
+                        <!-- (다) -->
+                        <div class="flex flex-col items-center gap-2">
+                            <div class="test-tube">
+                                <div id="foil-c" class="foil"></div>
+                                <div id="liquid-c" class="liquid blue"></div>
+                                <svg id="plant-c" class="plant" viewBox="0 0 24 24" fill="#15803d"><path d="M17,8C8,10 5.9,16.17 3.82,21.34L5.71,22L6.66,19.7C7.14,19.87 7.64,20 8,20C19,20 22,3 22,3C21,5 14,5.25 9,6.25C4,7.25 2,11.5 2,13.5C2,15.5 3.75,17.25 3.75,17.25C7,8 17,8 17,8Z"/></svg>
+                            </div>
+                            <span class="font-cute font-bold text-gray-700">(다)</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Controls -->
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-8">
+                    <button id="btn-step1" onclick="runLabStep(1)" class="font-cute bg-white border-2 border-blue-400 hover:bg-blue-50 text-blue-700 py-3 rounded-xl shadow-sm transition-all active:scale-95">
+                        1. 입김 불어넣기 🌬️
+                    </button>
+                    <button id="btn-step2" onclick="runLabStep(2)" disabled class="font-cute bg-gray-100 border-2 border-gray-300 text-gray-400 py-3 rounded-xl transition-all cursor-not-allowed">
+                        2. 검정말 + 은박지 씌우기 🌿
+                    </button>
+                    <button id="btn-step3" onclick="runLabStep(3)" disabled class="font-cute bg-gray-100 border-2 border-gray-300 text-gray-400 py-3 rounded-xl transition-all cursor-not-allowed">
+                        3. 햇빛 비추기 ☀️
+                    </button>
+                </div>
+
+                <!-- Results Table (Hidden until Step 1) -->
+                <div id="lab-results" class="hidden">
+                    <h3 class="font-cute text-xl text-green-700 mb-3"><i class="fa-solid fa-clipboard-check"></i> 실험 결과 및 해석</h3>
+                    
+                    <div class="bg-yellow-50 p-3 rounded-lg mb-4 text-sm border border-yellow-200">
+                        * 과정 1에서 불어넣은 날숨 속의 기체는 <span class="concept-blank" onclick="revealBlank(this)">이산화탄소</span>이므로 BTB 용액이 <span class="concept-blank" onclick="revealBlank(this)">노란색</span>으로 변합니다.
+                    </div>
+
+                    <div class="overflow-x-auto bg-white rounded-xl border-2 border-green-200 shadow-sm">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="bg-green-100 text-green-800 font-cute">
+                                    <th class="p-3 border-b-2 border-green-200 w-1/6">구분</th>
+                                    <th class="p-3 border-b-2 border-green-200 w-2/6">색깔 변화</th>
+                                    <th class="p-3 border-b-2 border-green-200 w-3/6">이유</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr class="border-b border-gray-200">
+                                    <td class="p-3 font-bold text-center">(가)</td>
+                                    <td class="p-3">노란색 → <span class="concept-blank" onclick="revealBlank(this)">노란색</span></td>
+                                    <td class="p-3">아무런 조작도 하지 않았음 (= <span class="concept-blank" onclick="revealBlank(this)">대조군</span>)</td>
+                                </tr>
+                                <tr class="border-b border-gray-200 bg-blue-50/30">
+                                    <td class="p-3 font-bold text-center">(나)</td>
+                                    <td class="p-3">노란색 → <span class="concept-blank" onclick="revealBlank(this)">파란색</span></td>
+                                    <td class="p-3">햇빛을 받은 검정말이 <span class="concept-blank" onclick="revealBlank(this)">광합성</span>을 하면서 <span class="concept-blank" onclick="revealBlank(this)">이산화탄소</span>를 사용했기 때문</td>
+                                </tr>
+                                <tr class="border-b border-gray-200">
+                                    <td class="p-3 font-bold text-center">(다)</td>
+                                    <td class="p-3">노란색 → <span class="concept-blank" onclick="revealBlank(this)">노란색</span></td>
+                                    <td class="p-3">햇빛이 차단되어 <span class="concept-blank" onclick="revealBlank(this)">광합성이 일어나지 않음</span></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="mt-4 p-4 bg-emerald-100 rounded-xl border border-emerald-300">
+                        <p class="font-cute text-lg text-emerald-800 font-bold mb-2">📌 결론</p>
+                        <p>식물은 <span class="concept-blank" onclick="revealBlank(this)">빛</span>이 있을 때 광합성을 하며, 광합성에는 <span class="concept-blank" onclick="revealBlank(this)">이산화탄소</span>가 필요하다!</p>
+                    </div>
+
+                    <!-- BTB Table -->
+                    <div class="mt-6 flex flex-col sm:flex-row items-center sm:items-start gap-4">
+                        <div class="flex flex-col items-center sm:items-start gap-2">
+                            <div class="bg-gray-100 p-2 rounded-lg text-sm text-gray-600 font-bold whitespace-nowrap">
+                                BTB 용액 (지시약)
+                            </div>
+                            <button onclick="toggleBTBInfo()" class="w-6 h-6 rounded-full bg-blue-100 text-blue-600 font-bold flex items-center justify-center hover:bg-blue-200 transition-colors shadow-sm focus:outline-none ml-0 sm:ml-2">?</button>
+                            <div id="btb-info" class="hidden bg-blue-50 border border-blue-200 text-blue-800 text-xs p-3 rounded-lg w-full sm:max-w-[180px] text-left shadow-sm mt-1">
+                                <strong>BTB (브로모티몰 블루)</strong><br>
+                                산성도(pH)에 따라 색이 변하는 지시약입니다. 이산화탄소가 물에 녹으면 산성을 띠므로, 광합성 실험에서 이산화탄소의 증감을 눈으로 확인하는 데 사용됩니다.
+                            </div>
+                        </div>
+                        <table class="w-full text-center border-collapse border border-gray-300 text-sm bg-white mt-2 sm:mt-0">
+                            <tr class="bg-gray-50 font-cute">
+                                <td class="border border-gray-300 p-2 font-bold w-1/4">액성</td>
+                                <td class="border border-gray-300 p-2">산성</td>
+                                <td class="border border-gray-300 p-2">중성</td>
+                                <td class="border border-gray-300 p-2">염기성</td>
+                            </tr>
+                            <tr>
+                                <td class="border border-gray-300 p-2 font-bold bg-gray-50 font-cute">색깔</td>
+                                <td class="border border-gray-300 p-2"><span class="concept-blank color-yellow" onclick="revealBlank(this)">노란색</span></td>
+                                <td class="border border-gray-300 p-2"><span class="concept-blank color-green" onclick="revealBlank(this)">초록색</span></td>
+                                <td class="border border-gray-300 p-2"><span class="concept-blank color-blue" onclick="revealBlank(this)">파란색</span></td>
+                            </tr>
+                            <tr class="text-xs text-gray-500">
+                                <td class="border border-gray-300 p-1 bg-gray-50">CO₂양</td>
+                                <td class="border border-gray-300 p-1">많음</td>
+                                <td class="border border-gray-300 p-1">중간</td>
+                                <td class="border border-gray-300 p-1">적음</td>
+                            </tr>
+                        </table>
+                    </div>
+                    
+                    <div class="text-center mt-8">
+                        <button onclick="openTab('concept')" class="font-cute bg-emerald-500 hover:bg-emerald-600 text-white text-xl py-3 px-8 rounded-full shadow-lg transition-transform hover:scale-105">
+                            다음: 광합성 개념 정리 <i class="fa-solid fa-arrow-right ml-2"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+
+        <!-- ========================================== -->
+        <!-- TAB 3: CONCEPT (개념 정리) -->
+        <!-- ========================================== -->
+        <section id="tab-concept" class="tab-content hidden space-y-6">
+            <div class="glass-panel p-6 md:p-10">
+                <h2 class="font-cute text-3xl text-green-700 mb-6"><i class="fa-solid fa-seedling"></i> 4) 광합성 정리</h2>
+                
+                <div class="bg-white p-5 rounded-xl border-2 border-emerald-100 shadow-sm text-lg leading-loose mb-8">
+                    <p>
+                        식물 세포의 <span class="concept-blank" onclick="revealBlank(this)">엽록체</span>에서 
+                        <span class="concept-blank" onclick="revealBlank(this)">빛</span>에너지를 이용해 
+                        (산소 / 이산화탄소) 중 <span class="concept-blank" onclick="revealBlank(this)">이산화탄소</span>와(과) 
+                        <span class="concept-blank" onclick="revealBlank(this)">물</span>을 원료로 
+                        양분(= <span class="concept-blank" onclick="revealBlank(this)">포도당</span>)을 만드는 과정.
+                    </p>
+                    <p class="mt-2">
+                        이 과정에서 (산소 / 이산화탄소) 중 <span class="concept-blank" onclick="revealBlank(this)">산소</span>가 발생한다.
+                    </p>
+
+                    <!-- Chemical Equation -->
+                    <div class="mt-6 flex flex-wrap items-center justify-center gap-2 bg-emerald-50 p-4 rounded-lg font-bold text-center">
+                        <div class="bg-white px-3 py-1 border border-gray-300 rounded">이산화탄소</div>
+                        <i class="fa-solid fa-plus text-gray-400"></i>
+                        <div class="bg-white px-3 py-1 border border-gray-300 rounded text-transparent relative concept-blank" style="padding: 4px 12px; margin: 0;" onclick="revealBlank(this)">물</div>
+                        
+                        <div class="mx-2 flex flex-col items-center">
+                            <span class="text-xs text-orange-500">빛에너지</span>
+                            <i class="fa-solid fa-arrow-right text-emerald-500 text-xl"></i>
+                        </div>
+                        
+                        <div class="bg-white px-3 py-1 border border-gray-300 rounded text-transparent relative concept-blank" style="padding: 4px 12px; margin: 0;" onclick="revealBlank(this)">포도당</div>
+                        <i class="fa-solid fa-plus text-gray-400"></i>
+                        <div class="bg-white px-3 py-1 border border-gray-300 rounded">산소</div>
+                    </div>
+                </div>
+
+                <h2 class="font-cute text-2xl text-green-700 mb-4"><i class="fa-solid fa-apple-whole"></i> 5) 광합성에서 만들어진 양분</h2>
+                <div class="bg-white p-5 rounded-xl border-2 border-emerald-100 shadow-sm text-lg mb-8">
+                    <p>
+                        처음 만들어지는 <span class="concept-blank" onclick="revealBlank(this)">포도당</span>은(는) 
+                        곧바로 물에 녹지 않는 <span class="concept-blank" onclick="revealBlank(this)">녹말</span>(으)로 바뀌어 잎에 저장되며, 
+                        밤이 되면 다시 물에 녹는 형태로 바뀌어 식물이 살아가는데 필요한 <span class="concept-blank" onclick="revealBlank(this)">에너지원</span>으로 사용된다.
+                    </p>
+                </div>
+
+                <h3 class="font-cute text-xl text-green-700 mb-4">🌿 식물의 잎에서 일어나는 광합성</h3>
+                <div class="flex flex-col md:flex-row gap-6 items-center">
+                    <!-- Visual Diagram -->
+                    <div class="w-full md:w-1/3 bg-green-50 rounded-xl p-4 border border-green-200 relative aspect-square flex items-center justify-center shadow-inner">
+                        <svg viewBox="0 0 200 200" class="w-full h-full drop-shadow-md">
+                            <!-- Stem -->
+                            <path d="M100 200 Q100 150, 100 100" stroke="#84cc16" stroke-width="15" fill="none"/>
+                            <!-- Leaf -->
+                            <path d="M100 100 C 40 80, 20 20, 100 10, 180 20, 160 80, 100 100" fill="#22c55e" stroke="#166534" stroke-width="3"/>
+                            <!-- Veins -->
+                            <path d="M100 10 L100 100 M100 30 L60 20 M100 50 L50 40 M100 70 L60 60 M100 30 L140 20 M100 50 L150 40 M100 70 L140 60" stroke="#15803d" stroke-width="2" fill="none"/>
+                            
+                            <!-- Inputs (Arrows) -->
+                            <!-- Water (가) -->
+                            <path d="M90 190 L90 120" stroke="#3b82f6" stroke-width="4" stroke-dasharray="4,4" fill="none" marker-end="url(#arrow-blue)"/>
+                            <text x="70" y="180" fill="#1e3a8a" font-size="12" font-weight="bold">(가) 물</text>
+                            
+                            <!-- CO2 (A) -->
+                            <path d="M20 120 L70 90" stroke="#64748b" stroke-width="3" fill="none" marker-end="url(#arrow-gray)"/>
+                            <text x="10" y="140" fill="#334155" font-size="14" font-weight="bold">A</text>
+
+                            <!-- Outputs -->
+                            <!-- Phloem (나) -->
+                            <path d="M110 120 L110 190" stroke="#f59e0b" stroke-width="4" stroke-dasharray="4,4" fill="none" marker-end="url(#arrow-orange)"/>
+                            <text x="120" y="180" fill="#b45309" font-size="12" font-weight="bold">(나)</text>
+
+                            <!-- O2 (산소) -->
+                            <path d="M130 90 L180 120" stroke="#ef4444" stroke-width="3" fill="none" marker-end="url(#arrow-red)"/>
+                            <text x="180" y="140" fill="#991b1b" font-size="14" font-weight="bold">산소</text>
+
+                            <!-- Inside Leaf (B, C) -->
+                            <circle cx="100" cy="40" r="15" fill="#fef08a" stroke="#ca8a04"/>
+                            <text x="96" y="45" fill="#854d0e" font-size="14" font-weight="bold">B</text>
+                            
+                            <rect x="85" y="65" width="30" height="20" fill="#e2e8f0" stroke="#64748b"/>
+                            <text x="96" y="80" fill="#334155" font-size="14" font-weight="bold">C</text>
+
+                            <!-- Markers for arrows -->
+                            <defs>
+                                <marker id="arrow-blue" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#3b82f6" /></marker>
+                                <marker id="arrow-gray" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#64748b" /></marker>
+                                <marker id="arrow-orange" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#f59e0b" /></marker>
+                                <marker id="arrow-red" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#ef4444" /></marker>
+                            </defs>
+                        </svg>
+                    </div>
+
+                    <!-- Explanations -->
+                    <div class="w-full md:w-2/3 bg-white p-5 rounded-xl border border-gray-200 shadow-sm text-sm sm:text-base space-y-3">
+                        <p><strong>(가):</strong> 뿌리에서 흡수한 물을 잎까지 이동시키는 <span class="concept-blank" onclick="revealBlank(this)">물관</span></p>
+                        <p><strong>(나):</strong> 잎에서 생성된 양분을 다른 기관으로 이동시키는 <span class="concept-blank" onclick="revealBlank(this)">체관</span></p>
+                        <hr class="my-2 border-gray-100">
+                        <p><strong>* A:</strong> 잎의 기공에서 흡수하는 공기 중의 기체, <span class="concept-blank" onclick="revealBlank(this)">이산화탄소</span></p>
+                        <p><strong>* B:</strong> 광합성이 일어날 때 처음 만들어지는 양분, <span class="concept-blank" onclick="revealBlank(this)">포도당</span></p>
+                        <p><strong>* C:</strong> 포도당을 물에 녹지 않는 형태로 바꾸어 저장, <span class="concept-blank" onclick="revealBlank(this)">녹말</span></p>
+                        <p><strong>* 나가는 기체:</strong> 광합성이 일어날 때 발생하는 기체, <span class="concept-blank" onclick="revealBlank(this)">산소</span></p>
+                    </div>
+                </div>
+
+                <div class="text-center mt-10">
+                    <button onclick="openTab('quiz')" class="font-cute bg-red-400 hover:bg-red-500 text-white text-xl py-3 px-8 rounded-full shadow-lg transition-transform hover:scale-105">
+                        마지막 단계: 확인 문제 풀기 💯
+                    </button>
+                </div>
+            </div>
+        </section>
+
+
+        <!-- ========================================== -->
+        <!-- TAB 4: QUIZ (문제 풀이) -->
+        <!-- ========================================== -->
+        <section id="tab-quiz" class="tab-content hidden space-y-6">
+            <div class="glass-panel p-6 md:p-10">
+                <h2 class="font-cute text-3xl text-green-700 mb-2"><i class="fa-solid fa-pen-clip"></i> 학습지 연습문제</h2>
+                <p class="text-gray-600 mb-8">배운 내용을 바탕으로 정답을 선택해보세요.</p>
+
+                <!-- Question 1 -->
+                <div class="bg-white rounded-xl border-2 border-gray-200 p-6 mb-8 shadow-sm">
+                    <div class="flex gap-3 mb-4">
+                        <div class="font-cute text-xl text-white bg-blue-500 w-8 h-8 flex items-center justify-center rounded-full flex-shrink-0">1</div>
+                        <p class="text-gray-800 font-bold leading-relaxed">
+                            그림과 같이 4개의 시험관에 푸른색 BTB 용액을 넣은 후 A는 그대로 두고, B~D에 숨을 불어 넣고 노란색을 만든 뒤 C와 D에는 검정말을 넣었다. 
+                            이때, C 시험관을 알루미늄박으로 싸고, 4개의 시험관을 모두 햇빛이 비치는 곳에 두고 1시간이 지난 후 색 변화를 관찰하였다.<br>
+                            <span class="text-blue-600 underline decoration-blue-300">이를 설명한 것으로 옳지 않은 것은?</span>
+                        </p>
+                    </div>
+                    
+                    <!-- Simplified Visual for Q1 -->
+                    <div class="bg-gray-50 p-4 rounded-lg flex justify-center gap-4 mb-6 border border-gray-200 text-center text-sm font-cute text-gray-500">
+                        <div><div class="w-8 h-12 border-2 border-gray-300 border-t-0 rounded-b-xl bg-blue-300 mx-auto mb-1"></div>A<br>(그대로)</div>
+                        <div><div class="w-8 h-12 border-2 border-gray-300 border-t-0 rounded-b-xl bg-yellow-300 mx-auto mb-1"></div>B<br>(입김)</div>
+                        <div><div class="w-8 h-12 border-2 border-gray-300 border-t-0 rounded-b-xl bg-gray-400 mx-auto mb-1 flex items-end justify-center"><div class="w-4 h-6 bg-green-700 rounded-t-full"></div></div>C<br>(입김+검정말<br>+알루미늄)</div>
+                        <div><div class="w-8 h-12 border-2 border-gray-300 border-t-0 rounded-b-xl bg-blue-300 mx-auto mb-1 flex items-end justify-center"><div class="w-4 h-6 bg-green-700 rounded-t-full"></div></div>D<br>(입김+검정말<br>+빛)</div>
+                    </div>
+
+                    <div class="space-y-2" id="q1-options">
+                        <div class="quiz-option p-3 rounded-lg cursor-pointer" onclick="selectQuiz(1, 1)">① 1시간 후 관찰한 B와 C의 용액 색이 같다.</div>
+                        <div class="quiz-option p-3 rounded-lg cursor-pointer" onclick="selectQuiz(1, 2)">② 숨을 불어 넣으면 이산화 탄소가 공급된다.</div>
+                        <div class="quiz-option p-3 rounded-lg cursor-pointer" onclick="selectQuiz(1, 3)">③ 검정말의 광합성으로 D의 용액은 푸른색이 된다.</div>
+                        <div class="quiz-option p-3 rounded-lg cursor-pointer" onclick="selectQuiz(1, 4)">④ 이 실험을 통해 광합성에 필요한 물질을 알 수 있다.</div>
+                        <div class="quiz-option p-3 rounded-lg cursor-pointer" onclick="selectQuiz(1, 5)">⑤ BTB 용액은 이산화 탄소의 농도가 높을 때 푸른색이 된다.</div>
+                    </div>
+                    <div id="q1-feedback" class="mt-4 hidden p-3 rounded-lg font-bold text-center"></div>
+                </div>
+
+                <!-- Question 2 -->
+                <div class="bg-white rounded-xl border-2 border-gray-200 p-6 shadow-sm">
+                    <div class="flex gap-3 mb-4">
+                        <div class="font-cute text-xl text-white bg-blue-500 w-8 h-8 flex items-center justify-center rounded-full flex-shrink-0">2</div>
+                        <p class="text-gray-800 font-bold leading-relaxed pt-1">
+                            식물의 광합성에 필요한 것을 <span class="text-red-500">모두</span> 고른 것은?
+                        </p>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2" id="q2-options">
+                        <div class="quiz-option p-3 rounded-lg cursor-pointer text-center" onclick="selectQuiz(2, 1)">① 물, 산소</div>
+                        <div class="quiz-option p-3 rounded-lg cursor-pointer text-center" onclick="selectQuiz(2, 2)">② 빛, 물, 이산화 탄소</div>
+                        <div class="quiz-option p-3 rounded-lg cursor-pointer text-center" onclick="selectQuiz(2, 3)">③ 물, 이산화 탄소, 산소</div>
+                        <div class="quiz-option p-3 rounded-lg cursor-pointer text-center" onclick="selectQuiz(2, 4)">④ 빛, 산소, 이산화 탄소</div>
+                        <div class="quiz-option p-3 rounded-lg cursor-pointer text-center sm:col-span-2" onclick="selectQuiz(2, 5)">⑤ 빛, 물, 이산화 탄소, 산소</div>
+                    </div>
+                    <div id="q2-feedback" class="mt-4 hidden p-3 rounded-lg font-bold text-center"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer class="mt-12 text-center text-green-700/60 font-cute text-sm">
+            <p>제작: 해누리중학교 과학교사 남국현</p>
+            <p class="mt-1">© 2026 Haenuri Middle School Science Dept. All rights reserved.</p>
+        </footer>
+
+    </div>
+
+    <!-- Helmont Experiment Modal -->
+    <div id="helmont-modal" class="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm hidden opacity-0 transition-opacity duration-300">
+        <div class="bg-white rounded-2xl w-[90%] max-w-lg overflow-hidden shadow-2xl transform scale-95 transition-transform duration-300" id="helmont-modal-content">
+            <div class="bg-green-600 p-4 text-center">
+                <h3 class="font-cute text-2xl text-white">가상 실험: 헬몬트의 버드나무</h3>
+            </div>
+            <div class="p-6 flex flex-col items-center">
+                <div class="relative w-48 h-48 bg-blue-50 rounded-full border-4 border-green-100 flex items-end justify-center overflow-hidden mb-6 shadow-inner">
+                    <!-- Tree Graphic -->
+                    <div id="helmont-tree" class="tree-grow-anim text-green-600 flex flex-col items-center justify-end h-full w-full pb-4">
+                        <i id="tree-icon" class="fa-solid fa-seedling text-4xl mb-1 drop-shadow-md"></i>
+                        <div class="w-16 h-8 bg-amber-800 rounded-b-lg border-t-4 border-amber-900 shadow-md"></div>
+                    </div>
+                    <!-- Water Animation -->
+                    <div id="water-drops" class="absolute top-0 left-0 w-full h-full pointer-events-none hidden">
+                        <i class="fa-solid fa-droplet text-blue-400 absolute top-4 left-1/4 animate-bounce"></i>
+                        <i class="fa-solid fa-droplet text-blue-400 absolute top-8 left-1/2 animate-bounce" style="animation-delay: 0.2s"></i>
+                        <i class="fa-solid fa-droplet text-blue-400 absolute top-6 right-1/4 animate-bounce" style="animation-delay: 0.4s"></i>
+                    </div>
+                </div>
+                
+                <div class="grid grid-cols-2 gap-4 w-full text-center mb-6">
+                    <div class="bg-gray-50 p-3 rounded-lg border border-gray-200">
+                        <p class="text-sm text-gray-500 font-bold mb-1">버드나무 질량</p>
+                        <p id="tree-weight" class="text-xl font-cute text-green-700">2 kg</p>
+                        <p id="tree-diff" class="text-xs text-red-500 font-bold h-4"></p>
+                    </div>
+                    <div class="bg-gray-50 p-3 rounded-lg border border-gray-200">
+                        <p class="text-sm text-gray-500 font-bold mb-1">건조한 흙 질량</p>
+                        <p id="soil-weight" class="text-xl font-cute text-amber-800">90 kg</p>
+                        <p id="soil-diff" class="text-xs text-blue-500 font-bold h-4"></p>
+                    </div>
+                </div>
+
+                <button id="btn-water" onclick="runHelmontExp()" class="w-full font-cute bg-blue-500 hover:bg-blue-600 text-white text-xl py-4 rounded-xl shadow-md transition-all active:scale-95">
+                    <i class="fa-solid fa-cloud-rain"></i> 5년 동안 물만 주기
+                </button>
+                <button id="btn-finish-exp" onclick="closeHelmontModal()" class="w-full font-cute bg-green-500 hover:bg-green-600 text-white text-xl py-4 rounded-xl shadow-md transition-all active:scale-95 hidden">
+                    결과 확인하고 가설 평가하기 <i class="fa-solid fa-arrow-right"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- Audio Logic ---
+        let synth, polySynth, membraneSynth;
+        
+        async function initAudio() {
+            if (synth) return; // 이미 초기화된 경우
+            await Tone.start();
+            synth = new Tone.Synth().toDestination();
+            polySynth = new Tone.PolySynth(Tone.Synth).toDestination();
+            polySynth.volume.value = -5;
+            membraneSynth = new Tone.MembraneSynth().toDestination();
+            membraneSynth.volume.value = -10;
+        }
+
+        function playSound(type) {
+            if (!synth) return;
+            try {
+                if (type === 'click') synth.triggerAttackRelease("C5", "32n");
+                else if (type === 'reveal') synth.triggerAttackRelease("E5", "16n");
+                else if (type === 'correct') polySynth.triggerAttackRelease(["C5", "E5", "G5"], "8n");
+                else if (type === 'wrong') membraneSynth.triggerAttackRelease("C3", "8n");
+                else if (type === 'start') polySynth.triggerAttackRelease(["C4", "E4", "G4", "C5"], "4n");
+                else if (type === 'water') {
+                    const now = Tone.now();
+                    synth.triggerAttackRelease("C5", "32n", now);
+                    synth.triggerAttackRelease("E5", "32n", now + 0.1);
+                    synth.triggerAttackRelease("G5", "32n", now + 0.2);
+                }
+            } catch (e) { console.log(e); }
+        }
+
+        // Start App (Remove Landing)
+        async function startApp() {
+            await initAudio();
+            playSound('start');
+            document.getElementById('overlay').style.opacity = '0';
+            setTimeout(() => {
+                document.getElementById('overlay').style.display = 'none';
+                document.getElementById('app').classList.remove('hidden');
+            }, 500);
+        }
+
+        // Tab Navigation Logic
+        function openTab(tabName) {
+            playSound('click');
+            const tabs = ['story', 'lab', 'concept', 'quiz'];
+            tabs.forEach(t => {
+                document.getElementById(`tab-${t}`).classList.add('hidden');
+                document.getElementById(`btn-${t}`).classList.remove('active', 'bg-gradient-to-r', 'from-green-500', 'to-emerald-600', 'text-white', 'border-white/50');
+                document.getElementById(`btn-${t}`).classList.add('bg-white', 'text-green-800');
+            });
+            
+            document.getElementById(`tab-${tabName}`).classList.remove('hidden');
+            const activeBtn = document.getElementById(`btn-${tabName}`);
+            activeBtn.classList.remove('bg-white', 'text-green-800');
+            activeBtn.classList.add('active', 'bg-gradient-to-r', 'from-green-500', 'to-emerald-600', 'text-white', 'border-white/50');
+            
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // Concept Blank Reveal Logic
+        function revealBlank(element) {
+            playSound('reveal');
+            element.classList.add('revealed');
+            element.removeAttribute('onclick'); // Prevent re-clicking
+        }
+
+        // --- Helmont Experiment Modal Logic ---
+        function openHelmontModal() {
+            playSound('click');
+            const modal = document.getElementById('helmont-modal');
+            const content = document.getElementById('helmont-modal-content');
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                modal.classList.remove('opacity-0');
+                content.classList.remove('scale-95');
+                content.classList.add('scale-100');
+            }, 10);
+        }
+
+        function runHelmontExp() {
+            playSound('water');
+            const btnWater = document.getElementById('btn-water');
+            const btnFinish = document.getElementById('btn-finish-exp');
+            const waterDrops = document.getElementById('water-drops');
+            const treeIcon = document.getElementById('tree-icon');
+            
+            btnWater.disabled = true;
+            btnWater.classList.add('opacity-50', 'cursor-not-allowed');
+            waterDrops.classList.remove('hidden');
+
+            setTimeout(() => {
+                playSound('correct');
+                waterDrops.classList.add('hidden');
+                
+                // Grow Tree
+                treeIcon.classList.remove('fa-seedling', 'text-4xl');
+                treeIcon.classList.add('fa-tree', 'text-8xl');
+                
+                // Update Weights
+                document.getElementById('tree-weight').innerText = "76.1 kg";
+                document.getElementById('tree-diff').innerText = "(+ 74.1 kg)";
+                document.getElementById('soil-weight').innerText = "89.9 kg";
+                document.getElementById('soil-diff').innerText = "(- 0.1 kg)";
+
+                btnWater.classList.add('hidden');
+                btnFinish.classList.remove('hidden');
+            }, 2000);
+        }
+
+        function closeHelmontModal() {
+            playSound('click');
+            const modal = document.getElementById('helmont-modal');
+            const content = document.getElementById('helmont-modal-content');
+            modal.classList.add('opacity-0');
+            content.classList.remove('scale-100');
+            content.classList.add('scale-95');
+            
+            setTimeout(() => {
+                modal.classList.add('hidden');
+                document.getElementById('helmont-intro').classList.add('hidden');
+                document.getElementById('helmont-thoughts').classList.remove('hidden');
+            }, 300);
+        }
+
+        // --- Select Dropdown Logic ---
+        function checkSelect(selectElement, correctAnswer) {
+            if (selectElement.value === correctAnswer) {
+                playSound('correct');
+                selectElement.classList.add('correct');
+                selectElement.disabled = true; // Lock the correct answer
+            } else if (selectElement.value !== "") {
+                playSound('wrong');
+                selectElement.classList.add('border-red-400', 'bg-red-50');
+                setTimeout(() => {
+                    selectElement.classList.remove('border-red-400', 'bg-red-50');
+                    selectElement.value = ""; // Reset
+                }, 800);
+            }
+        }
+
+        // Virtual Lab Logic
+        let labStep = 0;
+        function runLabStep(step) {
+            playSound('click');
+            const status = document.getElementById('lab-status');
+            const liqA = document.getElementById('liquid-a');
+            const liqB = document.getElementById('liquid-b');
+            const liqC = document.getElementById('liquid-c');
+            const btn1 = document.getElementById('btn-step1');
+            const btn2 = document.getElementById('btn-step2');
+            const btn3 = document.getElementById('btn-step3');
+
+            if (step === 1) {
+                // 입김 불어넣기 -> 모두 노란색
+                status.innerHTML = "과정 1: 입김(날숨)을 불어넣어 이산화탄소를 공급했습니다.";
+                liqA.className = "liquid yellow";
+                liqB.className = "liquid yellow";
+                liqC.className = "liquid yellow";
+                
+                btn1.classList.replace('border-blue-400', 'border-gray-300');
+                btn1.classList.replace('text-blue-700', 'text-gray-400');
+                btn1.classList.replace('bg-white', 'bg-gray-100');
+                btn1.disabled = true;
+
+                btn2.disabled = false;
+                btn2.classList.replace('bg-gray-100', 'bg-white');
+                btn2.classList.replace('border-gray-300', 'border-green-400');
+                btn2.classList.replace('text-gray-400', 'text-green-700');
+                
+                document.getElementById('lab-results').classList.remove('hidden');
+            } 
+            else if (step === 2) {
+                // 검정말 넣고 (다)에 은박지
+                status.innerHTML = "과정 2: (나), (다)에 검정말을 넣고, (다)는 빛을 차단했습니다.";
+                document.getElementById('plant-b').style.opacity = '1';
+                document.getElementById('plant-c').style.opacity = '1';
+                setTimeout(() => { document.getElementById('foil-c').style.opacity = '1'; }, 500);
+
+                btn2.classList.replace('border-green-400', 'border-gray-300');
+                btn2.classList.replace('text-green-700', 'text-gray-400');
+                btn2.classList.replace('bg-white', 'bg-gray-100');
+                btn2.disabled = true;
+
+                btn3.disabled = false;
+                btn3.classList.replace('bg-gray-100', 'bg-white');
+                btn3.classList.replace('border-gray-300', 'border-red-400');
+                btn3.classList.replace('text-gray-400', 'text-red-700');
+            }
+            else if (step === 3) {
+                // 햇빛 비추기 -> (나)만 파란색 
+                status.innerHTML = "과정 3: 햇빛을 비추었습니다. 색깔 변화를 관찰하세요!";
+                
+                // Show bubbling animation for (나)
+                document.querySelectorAll('.bubble').forEach(b => b.style.opacity = '1');
+                
+                setTimeout(() => {
+                    liqB.className = "liquid blue"; // (나) turns blue due to photosynthesis consuming CO2
+                    document.querySelectorAll('.bubble').forEach(b => {
+                        b.style.animation = 'none';
+                        b.style.opacity = '0';
+                    });
+                }, 2000);
+
+                btn3.classList.replace('border-red-400', 'border-gray-300');
+                btn3.classList.replace('text-red-700', 'text-gray-400');
+                btn3.classList.replace('bg-white', 'bg-gray-100');
+                btn3.disabled = true;
+                btn3.innerHTML = "실험 완료 🎉";
+            }
+        }
+
+        // Quiz Logic
+        const answers = { 1: 5, 2: 2 }; // Q1 answer is 5, Q2 answer is 2
+
+        function toggleBTBInfo() {
+            playSound('click');
+            const info = document.getElementById('btb-info');
+            info.classList.toggle('hidden');
+        }
+
+        function selectQuiz(qNum, selectedOpt) {
+            const options = document.getElementById(`q${qNum}-options`).children;
+            const feedback = document.getElementById(`q${qNum}-feedback`);
+            const correctAns = answers[qNum];
+
+            // Reset styles
+            for (let i = 0; i < options.length; i++) {
+                options[i].className = 'quiz-option p-3 rounded-lg cursor-pointer' + (qNum===2 ? ' text-center' : '');
+                if(qNum === 2 && i === 4) options[i].classList.add('sm:col-span-2');
+            }
+
+            // Apply selected styling
+            const selectedDiv = options[selectedOpt - 1];
+            
+            feedback.classList.remove('hidden', 'bg-blue-100', 'text-blue-800', 'bg-red-100', 'text-red-800');
+
+            if (selectedOpt === correctAns) {
+                playSound('correct');
+                selectedDiv.classList.add('correct');
+                feedback.innerHTML = "🎉 정답입니다! 훌륭해요.";
+                feedback.classList.add('bg-blue-100', 'text-blue-800', 'border', 'border-blue-300');
+            } else {
+                playSound('wrong');
+                selectedDiv.classList.add('wrong');
+                feedback.innerHTML = "❌ 오답입니다. 다시 한번 생각해보세요!";
+                feedback.classList.add('bg-red-100', 'text-red-800', 'border', 'border-red-300');
+            }
+        }
+    </script>
+</body>
+</html>
