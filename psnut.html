@@ -1,0 +1,692 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>5. 2. 2. 양분의 저장과 이용 🌿</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Fonts: 주아체 (Title), 고운돋움 (Body) -->
+    <link href="https://fonts.googleapis.com/css2?family=Gowun+Dodum&family=Jua&display=swap" rel="stylesheet">
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Tone.js for Audio -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
+    
+    <style>
+        :root {
+            --bg-pastel-green: #f0fdf4;
+            --bg-leaf-green: #dcfce7;
+            --panel-bg: rgba(255, 255, 255, 0.85);
+            --text-main: #064e3b;
+            --accent-green: #10b981;
+            --accent-yellow: #f59e0b;
+        }
+
+        body {
+            font-family: 'Gowun Dodum', sans-serif;
+            background-color: var(--bg-pastel-green);
+            background-image: 
+                radial-gradient(circle at 10% 20%, rgba(16, 185, 129, 0.05), transparent 40%),
+                radial-gradient(circle at 90% 80%, rgba(245, 158, 11, 0.05), transparent 40%);
+            background-attachment: fixed;
+            margin: 0; overflow-x: hidden; touch-action: manipulation;
+            color: var(--text-main); line-height: 1.7;
+        }
+
+        .font-cute { font-family: 'Jua', sans-serif; letter-spacing: 0.5px; }
+        
+        .glass-panel {
+            background: var(--panel-bg);
+            backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+            border-radius: 24px; border: 2px solid rgba(16, 185, 129, 0.2);
+            box-shadow: 0 10px 30px -10px rgba(4, 120, 87, 0.15);
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+        .animate-float { animation: float 4s ease-in-out infinite; }
+
+        /* Concept Blank Logic */
+        .concept-blank {
+            display: inline-block; background: rgba(16, 185, 129, 0.1);
+            color: transparent; border-bottom: 3px dashed var(--accent-green);
+            padding: 0 12px; margin: 0 4px; border-radius: 8px;
+            cursor: pointer; transition: all 0.3s; position: relative; font-weight: 700;
+            user-select: none;
+        }
+        .concept-blank::after {
+            content: '클릭!'; position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
+            color: var(--accent-green); font-size: 0.85rem; font-family: 'Jua';
+            opacity: 0.8; animation: pulse-glow 1.5s infinite alternate;
+        }
+        @keyframes pulse-glow { 0% { opacity: 0.5; } 100% { opacity: 1; transform: translate(-50%, -50%) scale(1.1); } }
+        
+        .concept-blank.revealed {
+            background: rgba(16, 185, 129, 0.2); color: #047857;
+            border-bottom: 3px solid var(--accent-green); transform: scale(1.05);
+        }
+        .concept-blank.revealed::after { display: none; }
+
+        /* Navigation Buttons */
+        .nav-btn { position: relative; overflow: hidden; transition: all 0.3s; border: 2px solid transparent; }
+        .nav-btn.active {
+            background: linear-gradient(135deg, #10b981, #059669);
+            border-color: rgba(255,255,255,0.5); box-shadow: 0 5px 15px rgba(16, 185, 129, 0.4);
+            color: white; transform: translateY(-2px);
+        }
+
+        /* Quiz Box */
+        .quiz-option { transition: all 0.2s; border: 2px solid #e2e8f0; }
+        .quiz-option:hover { border-color: #10b981; background-color: #ecfdf5; }
+        .quiz-option.selected { border-color: #10b981; background-color: #d1fae5; font-weight: bold; }
+        .quiz-option.correct { border-color: #3b82f6; background-color: #dbeafe; color: #1e3a8a; }
+        .quiz-option.wrong { border-color: #ef4444; background-color: #fee2e2; color: #991b1b; }
+        
+        /* Grid Layouts for Storage */
+        .storage-card {
+            background: white; border: 2px solid #d1fae5; border-radius: 16px;
+            padding: 12px; text-align: center; transition: transform 0.3s;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        }
+        .storage-card:hover { transform: translateY(-5px); border-color: #34d399; }
+    </style>
+</head>
+<body>
+
+    <!-- Landing Overlay -->
+    <div id="overlay" class="fixed inset-0 z-[200] flex flex-col items-center justify-center bg-white/95 px-4 backdrop-blur-sm transition-opacity duration-500">
+        <div class="text-center animate-float max-w-2xl">
+            <div class="mb-6 flex justify-center gap-6 text-6xl">
+                <i class="fa-solid fa-leaf text-green-500 drop-shadow-md"></i>
+                <i class="fa-solid fa-sun text-yellow-400 drop-shadow-md"></i>
+                <i class="fa-solid fa-carrot text-orange-400 drop-shadow-md"></i>
+            </div>
+            <h1 class="text-center font-cute text-4xl sm:text-5xl md:text-6xl text-green-700 mb-4 drop-shadow-sm">5. 2. 2. 양분의 저장과 이용</h1>
+            <p class="text-xl md:text-2xl text-green-600 mb-8 font-light">광합성으로 만들어진 양분은 어디로 갈까요? 🌿</p>
+            
+            <div class="space-y-3 mb-8 text-left max-w-md mx-auto bg-green-50 p-6 rounded-2xl border border-green-200 shadow-lg">
+                <h3 class="font-cute text-2xl text-green-800 mb-3 text-center">💡 오늘 배울 내용</h3>
+                <ul class="text-green-800 space-y-2.5 text-base">
+                    <li class="flex items-center gap-2"><i class="fa-solid fa-route text-blue-500"></i> 1단계: 양분의 생성과 이동 과정</li>
+                    <li class="flex items-center gap-2"><i class="fa-solid fa-bolt text-yellow-500"></i> 2단계: 양분이 식물에게 쓰이는 곳</li>
+                    <li class="flex items-center gap-2"><i class="fa-solid fa-box-open text-orange-500"></i> 3단계: 다양한 양분의 전환과 저장</li>
+                    <li class="flex items-center gap-2"><i class="fa-solid fa-pencil text-red-400"></i> 4단계: 핵심 콕콕! 연습문제 풀이</li>
+                </ul>
+            </div>
+
+            <button onclick="startApp()" class="font-cute bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-400 hover:to-emerald-500 text-white text-2xl sm:text-3xl py-4 px-10 rounded-full shadow-xl transition-transform hover:scale-105 active:scale-95">
+                학습 시작하기 🚀
+            </button>
+        </div>
+    </div>
+
+    <!-- Main App Content -->
+    <div id="app" class="max-w-5xl mx-auto p-4 md:p-8 hidden">
+        
+        <header class="text-center mb-8 pt-4">
+            <h1 class="font-cute text-4xl md:text-5xl text-green-800 drop-shadow-sm">🌿 양분의 저장과 이용</h1>
+            <p class="text-green-600 mt-2 font-cute text-lg">중학교 2학년 과학 V. 식물과 에너지</p>
+        </header>
+
+        <!-- Navigation Bar -->
+        <nav class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-8 glass-panel p-3">
+            <button onclick="openTab('move')" id="btn-move" class="nav-btn active font-cute text-sm sm:text-lg py-3 px-2 rounded-xl text-green-800 font-bold bg-white">1. 생성과 이동</button>
+            <button onclick="openTab('use')" id="btn-use" class="nav-btn font-cute text-sm sm:text-lg py-3 px-2 rounded-xl text-green-800 font-bold bg-white">2. 양분의 이용</button>
+            <button onclick="openTab('store')" id="btn-store" class="nav-btn font-cute text-sm sm:text-lg py-3 px-2 rounded-xl text-green-800 font-bold bg-white">3. 전환과 저장</button>
+            <button onclick="openTab('quiz')" id="btn-quiz" class="nav-btn font-cute text-sm sm:text-lg py-3 px-2 rounded-xl text-green-800 font-bold bg-white">4. 연습문제</button>
+        </nav>
+
+        <div class="bg-yellow-50 border border-yellow-200 p-4 rounded-xl mb-8 flex items-start gap-3 shadow-sm mx-auto">
+            <i class="fa-solid fa-circle-info text-yellow-500 text-2xl mt-1"></i>
+            <p class="text-gray-700">본문의 <strong class="text-emerald-600">점선 빈칸</strong>을 클릭해 학습지의 정답을 확인하세요. 스스로 생각해본 후 클릭해보세요!</p>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- TAB 1: 생성, 저장, 이동 -->
+        <!-- ========================================== -->
+        <section id="tab-move" class="tab-content glass-panel p-6 md:p-10 mb-8">
+            <h2 class="font-cute text-3xl text-green-700 mb-6"><i class="fa-solid fa-route"></i> 1. 양분의 생성, 저장, 이동</h2>
+            
+            <!-- 시각화 모형 -->
+            <div class="bg-blue-50/50 p-4 rounded-2xl border-2 border-blue-100 mb-8 flex flex-col md:flex-row items-center justify-center gap-6 shadow-inner">
+                <!-- SVG Diagram based on PDF Page 1 -->
+                <svg viewBox="0 0 500 250" class="w-full max-w-2xl drop-shadow-md bg-white rounded-xl p-2 border border-gray-200">
+                    <!-- Leaf Body -->
+                    <path d="M 150 125 C 200 20, 450 40, 480 125 C 450 210, 200 230, 150 125 Z" fill="#bbf7d0" stroke="#22c55e" stroke-width="4"/>
+                    <path d="M 150 125 L 480 125" stroke="#4ade80" stroke-width="2" stroke-dasharray="5,5"/> <!-- Vein -->
+                    
+                    <!-- Sun -->
+                    <circle cx="330" cy="30" r="15" fill="#facc15"/>
+                    <path d="M 330 45 L 330 80" stroke="#ca8a04" stroke-width="3" marker-end="url(#arrow-sun)"/>
+
+                    <!-- Stem & Vessels -->
+                    <rect x="20" y="20" width="40" height="210" fill="#e2e8f0" stroke="#94a3b8" stroke-width="2"/>
+                    <rect x="25" y="20" width="12" height="210" fill="#bfdbfe"/> <!-- 물관 -->
+                    <rect x="42" y="20" width="12" height="210" fill="#fcd34d"/> <!-- 체관 -->
+                    
+                    <text x="31" y="15" fill="#1e3a8a" font-size="12" font-weight="bold" text-anchor="middle">물관</text>
+                    <text x="48" y="245" fill="#92400e" font-size="12" font-weight="bold" text-anchor="middle">체관</text>
+
+                    <!-- Connection -->
+                    <path d="M 37 140 L 150 100" stroke="#bfdbfe" stroke-width="10"/>
+                    <path d="M 150 150 L 54 180" stroke="#fcd34d" stroke-width="10"/>
+
+                    <!-- Inside Chloroplast (White Box) -->
+                    <rect x="180" y="80" width="260" height="90" rx="20" fill="white" stroke="#64748b" stroke-width="2"/>
+                    
+                    <!-- Photosynthesis Equation -->
+                    <rect x="190" y="125" width="30" height="20" fill="white" stroke="#cbd5e1"/>
+                    <text x="205" y="139" font-size="10" font-weight="bold" text-anchor="middle">물</text>
+                    
+                    <text x="225" y="140" font-size="14" font-weight="bold">+</text>
+                    
+                    <rect x="235" y="125" width="60" height="20" fill="#ecfdf5" stroke="#6ee7b7"/>
+                    <text x="265" y="139" font-size="10" font-weight="bold" text-anchor="middle">이산화 탄소</text>
+                    
+                    <path d="M 300 135 L 320 135" stroke="black" stroke-width="2" marker-end="url(#arrow-black)"/>
+                    
+                    <rect x="330" y="110" width="40" height="50" fill="#ecfdf5" stroke="#6ee7b7"/>
+                    <text x="350" y="125" font-size="12" font-weight="bold" text-anchor="middle" fill="#047857">포</text>
+                    <text x="350" y="140" font-size="12" font-weight="bold" text-anchor="middle" fill="#047857">도</text>
+                    <text x="350" y="155" font-size="12" font-weight="bold" text-anchor="middle" fill="#047857">당</text>
+
+                    <text x="380" y="140" font-size="14" font-weight="bold">+</text>
+                    
+                    <rect x="390" y="125" width="30" height="20" fill="white" stroke="#cbd5e1"/>
+                    <text x="405" y="139" font-size="10" font-weight="bold" text-anchor="middle">산소</text>
+
+                    <!-- Storage -> 녹말 -->
+                    <rect x="330" y="85" width="40" height="20" fill="#d1fae5" stroke="#34d399"/>
+                    <text x="350" y="99" font-size="12" font-weight="bold" text-anchor="middle" fill="#065f46">녹말</text>
+                    <path d="M 345 110 L 345 105 M 355 105 L 355 110" stroke="black" stroke-width="1.5"/>
+
+                    <!-- Markers -->
+                    <defs>
+                        <marker id="arrow-sun" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="4" markerHeight="4" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#ca8a04" /></marker>
+                        <marker id="arrow-black" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="4" markerHeight="4" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="black" /></marker>
+                    </defs>
+                </svg>
+            </div>
+
+            <!-- 내용 정리 -->
+            <div class="space-y-4">
+                <div class="bg-white p-5 rounded-xl border-2 border-emerald-100 shadow-sm text-lg">
+                    <p class="font-bold text-green-800 mb-2">① 양분 생성</p>
+                    <p class="pl-4">식물 잎의 엽록체에서 광합성으로 물에 잘 녹는 <span class="concept-blank" onclick="revealBlank(this)">포도당</span>을(를) 만듦</p>
+                </div>
+                
+                <div class="bg-white p-5 rounded-xl border-2 border-emerald-100 shadow-sm text-lg">
+                    <p class="font-bold text-green-800 mb-2">② 양분 저장</p>
+                    <p class="pl-4">광합성으로 만들어진 포도당은 물에 잘 녹지 않는 <span class="concept-blank" onclick="revealBlank(this)">녹말</span>(으)로 바뀌어 잎 속의 엽록체에 일단 저장됨</p>
+                </div>
+                
+                <div class="bg-white p-5 rounded-xl border-2 border-emerald-100 shadow-sm text-lg">
+                    <p class="font-bold text-green-800 mb-2">③ 양분 이동</p>
+                    <p class="pl-4">식물은 <span class="concept-blank" onclick="revealBlank(this)">밤</span>이 되면 저장했던 녹말이 물에 잘 녹는 <span class="concept-blank" onclick="revealBlank(this)">설탕</span>(으)로 바뀌어 <span class="concept-blank" onclick="revealBlank(this)">체관</span>을(를) 통해 식물의 각 기관으로 운반됨</p>
+                </div>
+            </div>
+
+            <div class="text-center mt-10">
+                <button onclick="openTab('use')" class="font-cute bg-emerald-500 hover:bg-emerald-600 text-white text-xl py-3 px-8 rounded-full shadow-lg transition-transform hover:scale-105">
+                    다음: 양분의 이용 <i class="fa-solid fa-arrow-right ml-2"></i>
+                </button>
+            </div>
+        </section>
+
+
+        <!-- ========================================== -->
+        <!-- TAB 2: 양분의 이용 -->
+        <!-- ========================================== -->
+        <section id="tab-use" class="tab-content hidden glass-panel p-6 md:p-10 mb-8">
+            <h2 class="font-cute text-3xl text-green-700 mb-6"><i class="fa-solid fa-bolt"></i> 2. 양분의 이용</h2>
+            
+            <div class="flex flex-col md:flex-row gap-6 mb-8">
+                <!-- 이미지 모형 -->
+                <div class="w-full md:w-1/3 flex flex-col items-center justify-center bg-yellow-50 p-6 rounded-2xl border border-yellow-200">
+                    <i class="fa-solid fa-tree text-7xl text-green-600 mb-4 animate-bounce"></i>
+                    <div class="bg-white p-3 rounded-lg text-sm text-center border border-gray-200 shadow-sm relative">
+                        <div class="absolute -top-3 left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-[10px] border-l-transparent border-b-[10px] border-b-gray-200 border-r-[10px] border-r-transparent"></div>
+                        "양분을 <strong>에너지</strong>를 얻는데 사용해! 에너지가 용솟음친다!"<br><br>
+                        "양분을 <strong>생장</strong>하는 데에도 사용하지! 마구마구 커!"
+                    </div>
+                </div>
+
+                <!-- 텍스트 정리 -->
+                <div class="w-full md:w-2/3 space-y-4">
+                    <div class="bg-white p-5 rounded-xl border-l-4 border-l-yellow-400 shadow-sm text-lg">
+                        <p class="font-bold text-gray-800 flex items-center gap-2 mb-2">
+                            <i class="fa-solid fa-fire text-orange-500"></i> ① 에너지 생성
+                        </p>
+                        <p class="pl-6">식물의 각 기관으로 이동된 양분은 <span class="concept-blank" onclick="revealBlank(this)">호흡</span>을(를) 통해 산소와 반응하여 식물의 생명 활동에 필요한 <span class="concept-blank" onclick="revealBlank(this)">에너지</span>를 얻는 데 사용됨 (싹 틔우기, 꽃 피우기 등)</p>
+                    </div>
+                    
+                    <div class="bg-white p-5 rounded-xl border-l-4 border-l-green-400 shadow-sm text-lg">
+                        <p class="font-bold text-gray-800 flex items-center gap-2 mb-2">
+                            <i class="fa-solid fa-arrow-up-right-dots text-green-500"></i> ② 식물의 몸 구성 성분
+                        </p>
+                        <p class="pl-6">세포를 구성하는 성분이 됨 ⇒ 식물이 <span class="concept-blank" onclick="revealBlank(this)">생장</span>하는 데 사용되기도 함.</p>
+                    </div>
+
+                    <div class="bg-white p-5 rounded-xl border-l-4 border-l-blue-400 shadow-sm text-lg">
+                        <p class="font-bold text-gray-800 flex items-center gap-2 mb-2">
+                            <i class="fa-solid fa-paw text-blue-500"></i> ③ 동물의 영양분
+                        </p>
+                        <p class="pl-6">동물의 <span class="concept-blank" onclick="revealBlank(this)">먹이</span>가 됨.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="text-center mt-10">
+                <button onclick="openTab('store')" class="font-cute bg-emerald-500 hover:bg-emerald-600 text-white text-xl py-3 px-8 rounded-full shadow-lg transition-transform hover:scale-105">
+                    다음: 양분의 전환과 저장 <i class="fa-solid fa-arrow-right ml-2"></i>
+                </button>
+            </div>
+        </section>
+
+
+        <!-- ========================================== -->
+        <!-- TAB 3: 양분의 전환과 저장 -->
+        <!-- ========================================== -->
+        <section id="tab-store" class="tab-content hidden glass-panel p-6 md:p-10 mb-8">
+            <h2 class="font-cute text-3xl text-green-700 mb-6"><i class="fa-solid fa-box-open"></i> 3. 양분의 전환과 저장</h2>
+            
+            <div class="bg-white p-5 rounded-xl border-2 border-emerald-100 shadow-sm text-lg mb-8">
+                <p class="mb-2"><strong>① 사용하고 남은 양분의 저장 기관:</strong></p>
+                <p class="pl-4 flex flex-wrap gap-2">
+                    식물의 <span class="concept-blank" onclick="revealBlank(this)">뿌리</span>, 
+                    <span class="concept-blank" onclick="revealBlank(this)">줄기</span>, 
+                    <span class="concept-blank" onclick="revealBlank(this)">열매</span>, 
+                    <span class="concept-blank" onclick="revealBlank(this)">씨앗</span> 등 여러 기관에 저장됨.
+                </p>
+            </div>
+
+            <h3 class="font-cute text-2xl text-green-700 mb-4">② 양분이 저장될 때에는 다양한 물질로 바뀌어 저장됨</h3>
+            
+            <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                <!-- 고구마 -->
+                <div class="storage-card">
+                    <div class="text-4xl mb-2">🍠</div>
+                    <p class="font-bold text-gray-800 mb-2">고구마</p>
+                    <div class="text-sm space-y-1">
+                        <p><span class="concept-blank" onclick="revealBlank(this)">뿌리</span>에</p>
+                        <p><span class="concept-blank" onclick="revealBlank(this)">녹말</span>(로) 저장</p>
+                    </div>
+                </div>
+                <!-- 감자 -->
+                <div class="storage-card">
+                    <div class="text-4xl mb-2">🥔</div>
+                    <p class="font-bold text-gray-800 mb-2">감자</p>
+                    <div class="text-sm space-y-1">
+                        <p><span class="concept-blank" onclick="revealBlank(this)">줄기</span>에</p>
+                        <p><span class="concept-blank" onclick="revealBlank(this)">녹말</span>(로) 저장</p>
+                    </div>
+                </div>
+                <!-- 사탕수수 -->
+                <div class="storage-card">
+                    <div class="text-4xl mb-2 text-green-600"><i class="fa-brands fa-pagelines"></i></div>
+                    <p class="font-bold text-gray-800 mb-2">사탕수수</p>
+                    <div class="text-sm space-y-1">
+                        <p><span class="concept-blank" onclick="revealBlank(this)">줄기</span>에</p>
+                        <p><span class="concept-blank" onclick="revealBlank(this)">설탕</span>(으로) 저장</p>
+                    </div>
+                </div>
+                <!-- 포도 -->
+                <div class="storage-card">
+                    <div class="text-4xl mb-2">🍇</div>
+                    <p class="font-bold text-gray-800 mb-2">포도</p>
+                    <div class="text-sm space-y-1">
+                        <p><span class="concept-blank" onclick="revealBlank(this)">열매</span>에</p>
+                        <p><span class="concept-blank" onclick="revealBlank(this)">포도당</span>(으로) 저장</p>
+                    </div>
+                </div>
+                <!-- 콩 -->
+                <div class="storage-card">
+                    <div class="text-4xl mb-2">🫘</div>
+                    <p class="font-bold text-gray-800 mb-2">콩</p>
+                    <div class="text-sm space-y-1">
+                        <p><span class="concept-blank" onclick="revealBlank(this)">씨앗</span>에</p>
+                        <p><span class="concept-blank" onclick="revealBlank(this)">단백질</span>(로) 저장</p>
+                    </div>
+                </div>
+                <!-- 깨 -->
+                <div class="storage-card">
+                    <div class="text-4xl mb-2 text-yellow-700"><i class="fa-solid fa-seedling"></i></div>
+                    <p class="font-bold text-gray-800 mb-2">깨</p>
+                    <div class="text-sm space-y-1">
+                        <p><span class="concept-blank" onclick="revealBlank(this)">씨앗</span>에</p>
+                        <p><span class="concept-blank" onclick="revealBlank(this)">지방</span>(으로) 저장</p>
+                    </div>
+                </div>
+                <!-- 옥수수 -->
+                <div class="storage-card">
+                    <div class="text-4xl mb-2">🌽</div>
+                    <p class="font-bold text-gray-800 mb-2">옥수수</p>
+                    <div class="text-sm space-y-1">
+                        <p><span class="concept-blank" onclick="revealBlank(this)">열매</span>에</p>
+                        <p><span class="concept-blank" onclick="revealBlank(this)">녹말</span>(로) 저장</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="text-center mt-10">
+                <button onclick="openTab('quiz')" class="font-cute bg-red-400 hover:bg-red-500 text-white text-xl py-3 px-8 rounded-full shadow-lg transition-transform hover:scale-105">
+                    마지막 단계: 확인 문제 풀기 💯
+                </button>
+            </div>
+        </section>
+
+
+        <!-- ========================================== -->
+        <!-- TAB 4: 확인 문제 (Quiz) -->
+        <!-- ========================================== -->
+        <section id="tab-quiz" class="tab-content hidden space-y-6">
+            <div class="glass-panel p-6 md:p-10">
+                <h2 class="font-cute text-3xl text-green-700 mb-2"><i class="fa-solid fa-pen-clip"></i> 학습지 연습문제</h2>
+                <p class="text-gray-600 mb-8">배운 내용을 바탕으로 정답을 선택해보세요.</p>
+
+                <!-- Question 1 -->
+                <div class="bg-white rounded-xl border-2 border-gray-200 p-6 mb-8 shadow-sm">
+                    <div class="flex gap-3 mb-4">
+                        <div class="font-cute text-xl text-white bg-blue-500 w-8 h-8 flex items-center justify-center rounded-full flex-shrink-0">1</div>
+                        <p class="text-gray-800 font-bold leading-relaxed pt-1">
+                            그림은 광합성으로 만들어진 양분이 체관을 통해 이동하는 과정을 나타낸 것이다. A~C는 각각 설탕, 포도당, 녹말 중 하나이다. 이에 대한 설명으로 <span class="text-red-500 underline">옳지 않은 것은?</span>
+                        </p>
+                    </div>
+                    
+                    <!-- Q1 Image CSS rendering -->
+                    <div class="bg-green-50 p-4 rounded-xl border border-green-200 mb-6 flex justify-center">
+                        <svg viewBox="0 0 400 200" class="w-full max-w-md">
+                            <path d="M 50 100 C 150 0, 350 20, 380 100 C 350 180, 150 200, 50 100 Z" fill="#bbf7d0" stroke="#22c55e" stroke-width="2"/>
+                            <line x1="280" y1="20" x2="280" y2="180" stroke="#ef4444" stroke-width="2" stroke-dasharray="5,5"/>
+                            <text x="230" y="25" font-size="14" font-weight="bold" fill="#333">&lt;낮&gt;</text>
+                            <text x="290" y="25" font-size="14" font-weight="bold" fill="#333">&lt;밤&gt;</text>
+                            
+                            <text x="60" y="70" font-size="12">이산화 탄소 + 물</text>
+                            
+                            <rect x="200" y="50" width="40" height="30" rx="5" fill="white" stroke="#94a3b8"/>
+                            <text x="215" y="70" font-size="14" font-weight="bold">A</text>
+                            
+                            <line x1="220" y1="80" x2="220" y2="110" stroke="#f59e0b" stroke-width="3" marker-end="url(#arrow-orange2)"/>
+                            
+                            <rect x="200" y="120" width="40" height="30" rx="5" fill="#fef08a" stroke="#ca8a04"/>
+                            <text x="215" y="140" font-size="14" font-weight="bold">B</text>
+                            
+                            <line x1="240" y1="135" x2="300" y2="135" stroke="#ef4444" stroke-width="3" marker-end="url(#arrow-red2)"/>
+                            
+                            <rect x="310" y="120" width="40" height="30" rx="5" fill="#e0f2fe" stroke="#0ea5e9"/>
+                            <text x="325" y="140" font-size="14" font-weight="bold">C</text>
+                            
+                            <rect x="130" y="90" width="50" height="20" fill="white" stroke="#38bdf8"/>
+                            <text x="138" y="105" font-size="12">엽록체</text>
+
+                            <defs>
+                                <marker id="arrow-orange2" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="4" markerHeight="4" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#f59e0b" /></marker>
+                                <marker id="arrow-red2" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="4" markerHeight="4" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#ef4444" /></marker>
+                            </defs>
+                        </svg>
+                    </div>
+
+                    <div class="space-y-2" id="q1-options">
+                        <div class="quiz-option p-3 rounded-lg cursor-pointer" onclick="selectQuiz(1, 1)">① A는 포도당이다.</div>
+                        <div class="quiz-option p-3 rounded-lg cursor-pointer" onclick="selectQuiz(1, 2)">② B는 녹말이다.</div>
+                        <div class="quiz-option p-3 rounded-lg cursor-pointer" onclick="selectQuiz(1, 3)">③ A, B, C는 모두 물에 잘 녹는다.</div>
+                        <div class="quiz-option p-3 rounded-lg cursor-pointer" onclick="selectQuiz(1, 4)">④ 주로 빛이 없을 때 B가 C로 바뀐다.</div>
+                        <div class="quiz-option p-3 rounded-lg cursor-pointer" onclick="selectQuiz(1, 5)">⑤ C는 체관을 통해 식물 전체로 운반된다.</div>
+                    </div>
+                    <div id="q1-feedback" class="mt-4 hidden p-3 rounded-lg font-bold text-center"></div>
+                </div>
+
+                <!-- Question 2 -->
+                <div class="bg-white rounded-xl border-2 border-gray-200 p-6 mb-8 shadow-sm">
+                    <div class="flex gap-3 mb-4">
+                        <div class="font-cute text-xl text-white bg-blue-500 w-8 h-8 flex items-center justify-center rounded-full flex-shrink-0">2</div>
+                        <p class="text-gray-800 font-bold leading-relaxed pt-1">
+                            그림은 식물의 광합성 과정을 나타낸 것이다. (단, ㉠과 ㉡은 물질 이동 통로이다.) 그림에 대한 설명으로 <span class="text-red-500 underline">옳지 않은 것은?</span>
+                        </p>
+                    </div>
+                    
+                    <!-- Q2 Image -->
+                    <div class="bg-gray-50 p-4 rounded-xl border border-gray-200 mb-6 flex justify-center">
+                        <svg viewBox="0 0 450 200" class="w-full max-w-lg">
+                            <!-- 줄기 통로 -->
+                            <rect x="20" y="20" width="30" height="160" fill="#e2e8f0" stroke="#94a3b8"/>
+                            <line x1="35" y1="20" x2="35" y2="180" stroke="#94a3b8" stroke-width="2"/>
+                            
+                            <!-- 화살표 통로 (ㄱ 위로, ㄴ 위아래로) -->
+                            <text x="0" y="30" font-size="12">㉠</text>
+                            <path d="M 27 180 L 27 40" stroke="#64748b" stroke-width="2" marker-end="url(#arrow-black)" />
+                            
+                            <text x="0" y="60" font-size="12">㉡</text>
+                            <path d="M 43 40 L 43 180" stroke="#64748b" stroke-width="2" marker-end="url(#arrow-black)" />
+                            
+                            <!-- 잎 -->
+                            <path d="M 120 100 C 180 20, 380 40, 420 100 C 380 180, 180 180, 120 100 Z" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="3"/>
+                            <!-- 연결부 -->
+                            <path d="M 50 120 L 120 90 M 50 140 L 120 110" stroke="#94a3b8" stroke-width="2"/>
+                            <path d="M 50 130 L 100 100" stroke="#64748b" stroke-width="2" marker-end="url(#arrow-black)"/> <!-- 물 들어감 -->
+                            
+                            <!-- 내부 반응 -->
+                            <rect x="150" y="60" width="30" height="20" rx="3" fill="#e2e8f0" stroke="#94a3b8"/>
+                            <text x="160" y="75" font-size="12" font-weight="bold">A</text>
+                            
+                            <text x="185" y="75" font-size="14" font-weight="bold">+</text>
+                            
+                            <rect x="200" y="60" width="30" height="20" rx="3" fill="#e2e8f0" stroke="#94a3b8"/>
+                            <text x="210" y="75" font-size="12" font-weight="bold">B</text>
+
+                            <!-- CO2 들어옴 -->
+                            <path d="M 180 170 Q 200 120 215 85" fill="none" stroke="#64748b" stroke-width="2" marker-end="url(#arrow-black)"/>
+                            <circle cx="170" cy="180" r="2" fill="#64748b"/><circle cx="180" cy="180" r="2" fill="#64748b"/>
+
+                            <path d="M 235 70 L 265 70" stroke="#64748b" stroke-width="2" marker-end="url(#arrow-black)"/>
+                            
+                            <!-- 햇빛 -->
+                            <text x="240" y="25" font-size="12" font-weight="bold">햇빛</text>
+                            <path d="M 250 30 L 250 65" stroke="#94a3b8" stroke-width="4" marker-end="url(#arrow-black)"/>
+                            
+                            <rect x="270" y="60" width="30" height="20" rx="3" fill="#e2e8f0" stroke="#94a3b8"/>
+                            <text x="280" y="75" font-size="12" font-weight="bold">C</text>
+                            
+                            <text x="305" y="75" font-size="14" font-weight="bold">+</text>
+                            
+                            <rect x="320" y="60" width="30" height="20" rx="3" fill="#e2e8f0" stroke="#94a3b8"/>
+                            <text x="330" y="75" font-size="12" font-weight="bold">D</text>
+
+                            <!-- 산소 나감 -->
+                            <path d="M 345 85 Q 380 120 380 160" fill="none" stroke="#64748b" stroke-width="2" marker-end="url(#arrow-black)"/>
+                            <circle cx="390" cy="170" r="2" fill="#64748b"/><circle cx="380" cy="175" r="2" fill="#64748b"/>
+                            
+                            <text x="280" y="100" font-size="12" font-weight="bold">⇅</text>
+                            
+                            <rect x="270" y="110" width="30" height="20" rx="3" fill="#e2e8f0" stroke="#94a3b8"/>
+                            <text x="280" y="125" font-size="12" font-weight="bold">E</text>
+                            <!-- 녹말 표시 -->
+                            <circle cx="275" cy="140" r="3" fill="#475569"/><circle cx="285" cy="140" r="3" fill="#475569"/><circle cx="295" cy="140" r="3" fill="#475569"/>
+                            
+                            <!-- 나가는 양분 -->
+                            <path d="M 260 120 Q 180 130 100 130" fill="none" stroke="#64748b" stroke-width="2" marker-end="url(#arrow-black)"/>
+                        </svg>
+                    </div>
+
+                    <div class="space-y-2" id="q2-options">
+                        <div class="quiz-option p-3 rounded-lg cursor-pointer" onclick="selectQuiz(2, 1)">① A는 물, B는 이산화 탄소이다.</div>
+                        <div class="quiz-option p-3 rounded-lg cursor-pointer" onclick="selectQuiz(2, 2)">② ㉠은 체관으로 설탕이 발견된다.</div>
+                        <div class="quiz-option p-3 rounded-lg cursor-pointer" onclick="selectQuiz(2, 3)">③ 포도는 C의 형태로 양분을 저장한다.</div>
+                        <div class="quiz-option p-3 rounded-lg cursor-pointer" onclick="selectQuiz(2, 4)">④ 고구마는 뿌리에 E의 형태로 양분을 저장한다.</div>
+                        <div class="quiz-option p-3 rounded-lg cursor-pointer" onclick="selectQuiz(2, 5)">⑤ 광합성 산물은 ㉡을 통해 식물의 여러 기관으로 이동한다.</div>
+                    </div>
+                    <div id="q2-feedback" class="mt-4 hidden p-3 rounded-lg font-bold text-center"></div>
+                </div>
+
+                <!-- Question 3 -->
+                <div class="bg-white rounded-xl border-2 border-gray-200 p-6 mb-8 shadow-sm">
+                    <div class="flex gap-3 mb-4">
+                        <div class="font-cute text-xl text-white bg-blue-500 w-8 h-8 flex items-center justify-center rounded-full flex-shrink-0">3</div>
+                        <p class="text-gray-800 font-bold leading-relaxed pt-1">
+                            광합성 산물의 이동과 이용에 관한 설명으로 <span class="text-blue-600 underline">옳은 것만을</span> &lt;보기&gt;에서 있는 대로 고른 것은?
+                        </p>
+                    </div>
+                    
+                    <div class="bg-gray-50 border border-gray-300 p-4 rounded-lg mb-4 text-gray-800 leading-loose">
+                        <strong>[보기]</strong><br>
+                        ㄱ. 사용하고 남은 양분은 식물체 밖으로 배출된다.<br>
+                        ㄴ. 광합성 산물은 모두 생명 활동에 필요한 에너지를 만드는 데 사용된다.<br>
+                        ㄷ. 광합성 산물은 뿌리, 줄기, 열매, 씨앗 등 여러 기관으로 이동하여 저장된다.<br>
+                        ㄹ. 광합성 산물은 물에 잘 녹는 설탕 형태로 바뀌어 주로 밤에 체관을 통해 이동한다.
+                    </div>
+
+                    <div class="grid grid-cols-2 md:grid-cols-5 gap-2" id="q3-options">
+                        <div class="quiz-option p-3 rounded-lg cursor-pointer text-center" onclick="selectQuiz(3, 1)">① ㄱ, ㄴ</div>
+                        <div class="quiz-option p-3 rounded-lg cursor-pointer text-center" onclick="selectQuiz(3, 2)">② ㄱ, ㄷ</div>
+                        <div class="quiz-option p-3 rounded-lg cursor-pointer text-center" onclick="selectQuiz(3, 3)">③ ㄱ, ㄹ</div>
+                        <div class="quiz-option p-3 rounded-lg cursor-pointer text-center" onclick="selectQuiz(3, 4)">④ ㄴ, ㄷ</div>
+                        <div class="quiz-option p-3 rounded-lg cursor-pointer text-center col-span-2 md:col-span-1" onclick="selectQuiz(3, 5)">⑤ ㄷ, ㄹ</div>
+                    </div>
+                    <div id="q3-feedback" class="mt-4 hidden p-3 rounded-lg font-bold text-center"></div>
+                </div>
+
+                <!-- Question 4 -->
+                <div class="bg-white rounded-xl border-2 border-gray-200 p-6 shadow-sm">
+                    <div class="flex gap-3 mb-4">
+                        <div class="font-cute text-xl text-white bg-blue-500 w-8 h-8 flex items-center justify-center rounded-full flex-shrink-0">4</div>
+                        <p class="text-gray-800 font-bold leading-relaxed pt-1">
+                            그림은 광합성 산물의 저장과 이용을 나타낸 것이다. 이에 대한 설명으로 <span class="text-blue-600 underline">옳은 것만을</span> &lt;보기&gt;에서 있는 대로 고른 것은?
+                        </p>
+                    </div>
+                    
+                    <div class="bg-green-50 p-4 rounded-xl border border-green-200 mb-6 flex flex-col items-center">
+                        <div class="text-center font-bold text-gray-700 mb-2 border-b-2 border-green-300 pb-2 w-full">잎에서 양분 생성 → 다양한 기관으로 이동 및 저장</div>
+                        <div class="flex justify-around w-full mt-4 text-2xl">
+                            <div class="flex flex-col items-center"><span class="text-sm font-bold text-gray-600 mb-1">씨앗</span>🫘 콩</div>
+                            <div class="flex flex-col items-center"><span class="text-sm font-bold text-gray-600 mb-1">열매</span>🍇 포도</div>
+                            <div class="flex flex-col items-center"><span class="text-sm font-bold text-gray-600 mb-1">줄기</span>🎋 사탕수수</div>
+                            <div class="flex flex-col items-center"><span class="text-sm font-bold text-gray-600 mb-1">뿌리</span>🍠 고구마</div>
+                        </div>
+                    </div>
+
+                    <div class="bg-gray-50 border border-gray-300 p-4 rounded-lg mb-4 text-gray-800 leading-loose">
+                        <strong>[보기]</strong><br>
+                        ㄱ. 양분은 주로 잎에서 만들어진다.<br>
+                        ㄴ. 잎에서 만들어진 양분은 물관을 통해 이동한다.<br>
+                        ㄷ. 고구마는 광합성 산물을 뿌리에 녹말의 형태로 저장한다.
+                    </div>
+
+                    <div class="grid grid-cols-2 md:grid-cols-5 gap-2" id="q4-options">
+                        <div class="quiz-option p-3 rounded-lg cursor-pointer text-center" onclick="selectQuiz(4, 1)">① ㄱ</div>
+                        <div class="quiz-option p-3 rounded-lg cursor-pointer text-center" onclick="selectQuiz(4, 2)">② ㄴ</div>
+                        <div class="quiz-option p-3 rounded-lg cursor-pointer text-center" onclick="selectQuiz(4, 3)">③ ㄱ, ㄷ</div>
+                        <div class="quiz-option p-3 rounded-lg cursor-pointer text-center" onclick="selectQuiz(4, 4)">④ ㄴ, ㄷ</div>
+                        <div class="quiz-option p-3 rounded-lg cursor-pointer text-center col-span-2 md:col-span-1" onclick="selectQuiz(4, 5)">⑤ ㄱ, ㄴ, ㄷ</div>
+                    </div>
+                    <div id="q4-feedback" class="mt-4 hidden p-3 rounded-lg font-bold text-center"></div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer class="mt-12 text-center text-green-700/60 font-cute text-sm">
+            <p>제작: 해누리중학교 과학교사 남국현</p>
+            <p class="mt-1">© 2026 Haenuri Middle School Science Dept. All rights reserved.</p>
+        </footer>
+
+    </div>
+
+    <script>
+        // Audio Logic
+        let synth, polySynth, membraneSynth;
+        
+        async function initAudio() {
+            if (synth) return;
+            await Tone.start();
+            synth = new Tone.Synth().toDestination();
+            polySynth = new Tone.PolySynth(Tone.Synth).toDestination();
+            polySynth.volume.value = -5;
+            membraneSynth = new Tone.MembraneSynth().toDestination();
+            membraneSynth.volume.value = -10;
+        }
+
+        function playSound(type) {
+            if (!synth) return;
+            try {
+                if (type === 'click') synth.triggerAttackRelease("C5", "32n");
+                else if (type === 'reveal') synth.triggerAttackRelease("E5", "16n");
+                else if (type === 'correct') polySynth.triggerAttackRelease(["C5", "E5", "G5"], "8n");
+                else if (type === 'wrong') membraneSynth.triggerAttackRelease("C3", "8n");
+                else if (type === 'start') polySynth.triggerAttackRelease(["C4", "E4", "G4", "C5"], "4n");
+            } catch (e) { console.log(e); }
+        }
+
+        async function startApp() {
+            await initAudio();
+            playSound('start');
+            document.getElementById('overlay').style.opacity = '0';
+            setTimeout(() => {
+                document.getElementById('overlay').style.display = 'none';
+                document.getElementById('app').classList.remove('hidden');
+            }, 500);
+        }
+
+        function openTab(tabName) {
+            playSound('click');
+            const tabs = ['move', 'use', 'store', 'quiz'];
+            tabs.forEach(t => {
+                document.getElementById(`tab-${t}`).classList.add('hidden');
+                document.getElementById(`btn-${t}`).classList.remove('active', 'bg-gradient-to-r', 'from-green-500', 'to-emerald-600', 'text-white', 'border-white/50');
+                document.getElementById(`btn-${t}`).classList.add('bg-white', 'text-green-800');
+            });
+            
+            document.getElementById(`tab-${tabName}`).classList.remove('hidden');
+            const activeBtn = document.getElementById(`btn-${tabName}`);
+            activeBtn.classList.remove('bg-white', 'text-green-800');
+            activeBtn.classList.add('active', 'bg-gradient-to-r', 'from-green-500', 'to-emerald-600', 'text-white', 'border-white/50');
+            
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function revealBlank(element) {
+            if(!element.classList.contains('revealed')) {
+                playSound('reveal');
+                element.classList.add('revealed');
+            }
+        }
+
+        // Quiz Answers based on PDF analysis
+        // 1: ③ A, B, C는 모두 물에 잘 녹는다. (녹말은 안 녹음)
+        // 2: ② ㉠은 체관으로 설탕이 발견된다. (㉠은 물관임)
+        // 3: ⑤ ㄷ, ㄹ (ㄱ,ㄴ 오답)
+        // 4: ③ ㄱ, ㄷ (ㄴ 오답: 체관으로 이동)
+        const answers = { 1: 3, 2: 2, 3: 5, 4: 3 }; 
+
+        function selectQuiz(qNum, selectedOpt) {
+            const options = document.getElementById(`q${qNum}-options`).children;
+            const feedback = document.getElementById(`q${qNum}-feedback`);
+            const correctAns = answers[qNum];
+
+            // Reset styles
+            for (let i = 0; i < options.length; i++) {
+                options[i].className = 'quiz-option p-3 rounded-lg cursor-pointer' + (qNum >= 3 ? ' text-center' : '');
+                if((qNum === 3 || qNum === 4) && i === 4) options[i].classList.add('col-span-2', 'md:col-span-1');
+            }
+
+            const selectedDiv = options[selectedOpt - 1];
+            feedback.classList.remove('hidden', 'bg-blue-100', 'text-blue-800', 'bg-red-100', 'text-red-800', 'border-blue-300', 'border-red-300');
+
+            if (selectedOpt === correctAns) {
+                playSound('correct');
+                selectedDiv.classList.add('correct');
+                feedback.innerHTML = "🎉 정답입니다! 훌륭해요.";
+                feedback.classList.add('bg-blue-100', 'text-blue-800', 'border', 'border-blue-300');
+            } else {
+                playSound('wrong');
+                selectedDiv.classList.add('wrong');
+                feedback.innerHTML = "❌ 오답입니다. 다시 한번 배운 내용을 떠올려보세요!";
+                feedback.classList.add('bg-red-100', 'text-red-800', 'border', 'border-red-300');
+            }
+        }
+    </script>
+</body>
+</html>
